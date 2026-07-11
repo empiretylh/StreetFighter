@@ -6,12 +6,40 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Street Fighter by Mayank Jain</title>
 		<link rel="stylesheet" href="src/style.css" />
+		<link rel="stylesheet" href="src/uicontrols/MobileControls.css" />
 		<script type="module" src="src/index.js"></script>
 	</head>
 
 	<body>
 		<main>
+
 			<canvas width="382px" height="224px"></canvas>
+
+			<div id="mobile-controls" style="display:none">
+
+				<div class="dpad">
+
+					<div class="joystick">
+						<div id="joystick-base">
+							<div id="joystick-stick"></div>
+						</div>
+					</div>
+
+				</div>
+
+				<div class="actions">
+
+					<button id="btn-punch">P</button>
+					<button id="btn-kick">K</button>
+					<button id="btn-special">
+						<span class="special-label">S</span>
+						<span class="cooldown-number"></span>
+					</button>
+
+				</div>
+
+			</div>
+
 		</main>
 		<audio
 			id="kensTheme"
@@ -77,6 +105,17 @@
 		<audio
 			id="sound-ryu-hadouken"
 			src="./public/sounds/hadouken.ogg"
+			preload="auto"
+		></audio>
+		<audio
+			id="sound-you-win"
+			src="./public/sounds/youwinSFX.mp3"
+			preload="auto"
+		></audio>
+
+		<audio
+			id="sound-you-lose"
+			src="./public/sounds/youloseSFX.mp3"
 			preload="auto"
 		></audio>
 

@@ -1339,6 +1339,7 @@ export class Ken extends Fighter {
 				FighterState.IDLE,
 				FighterState.IDLE_TURN,
 				FighterState.WALK_FORWARD,
+				FighterState.WALK_BACKWARD,
 				FighterState.CROUCH_UP,
 				FighterState.CROUCH_DOWN,
 				FighterState.CROUCH,

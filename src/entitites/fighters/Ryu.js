@@ -1320,13 +1320,17 @@ export class Ryu extends Fighter {
 				FighterState.IDLE,
 				FighterState.IDLE_TURN,
 				FighterState.WALK_FORWARD,
-				FighterState.CROUCH_UP,
-				FighterState.CROUCH_DOWN,
-				FighterState.CROUCH,
-				FighterState.CROUCH_TURN,
+				FighterState.WALK_BACKWARD,
+				// FighterState.CROUCH_UP,
+				// FighterState.CROUCH_DOWN,
+				// FighterState.CROUCH,
+				// FighterState.CROUCH_TURN,
 				FighterState.LIGHT_PUNCH,
 				FighterState.MEDIUM_PUNCH,
 				FighterState.HEAVY_PUNCH,
+				FighterState.LIGHT_KICK,
+    			FighterState.MEDIUM_KICK,
+    			FighterState.HEAVY_KICK,
 			],
 		};
 		this.states[FighterState.SPECIAL_1_MEDIUM] = {
@@ -1345,6 +1349,9 @@ export class Ryu extends Fighter {
 				FighterState.LIGHT_PUNCH,
 				FighterState.MEDIUM_PUNCH,
 				FighterState.HEAVY_PUNCH,
+				FighterState.LIGHT_KICK,
+    			FighterState.MEDIUM_KICK,
+    			FighterState.HEAVY_KICK,
 			],
 		};
 		this.states[FighterState.SPECIAL_1_HEAVY] = {
@@ -1363,6 +1370,9 @@ export class Ryu extends Fighter {
 				FighterState.LIGHT_PUNCH,
 				FighterState.MEDIUM_PUNCH,
 				FighterState.HEAVY_PUNCH,
+				FighterState.LIGHT_KICK,
+    			FighterState.MEDIUM_KICK,
+    			FighterState.HEAVY_KICK,
 			],
 		};
 		this.states[FighterState.IDLE].validFrom = [

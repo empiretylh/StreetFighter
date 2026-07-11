@@ -101,26 +101,27 @@ export class ControlHistory {
 		console.log(historyWithNamesOnly);
 	}
 
-	// older version which work with 	specialMoveSequence = {
-	// 	[FighterState.SPECIAL_1_LIGHT]: [
-	// 		SpecialMovesControls.DOWN,
-	// 		SpecialMovesControls.FORWARD_DOWN,
-	// 		SpecialMovesControls.FORWARD,
-	// 		SpecialMovesControls.LIGHT_PUNCH,
-	// 	],
-	// 	[FighterState.SPECIAL_1_MEDIUM]: [
-	// 		SpecialMovesControls.DOWN,
-	// 		SpecialMovesControls.FORWARD_DOWN,
-	// 		SpecialMovesControls.FORWARD,
-	// 		SpecialMovesControls.MEDIUM_PUNCH,
-	// 	],
-	// 	[FighterState.SPECIAL_1_HEAVY]: [
-	// 		SpecialMovesControls.DOWN,
-	// 		SpecialMovesControls.FORWARD_DOWN,
-	// 		SpecialMovesControls.FORWARD,
-	// 		SpecialMovesControls.HEAVY_PUNCH,
-	// 	],
-	// };
+	// older version which work with 	
+	specialMoveSequence = {
+		[FighterState.SPECIAL_1_LIGHT]: [
+			SpecialMovesControls.DOWN,
+			SpecialMovesControls.FORWARD_DOWN,
+			SpecialMovesControls.FORWARD,
+			SpecialMovesControls.LIGHT_PUNCH,
+		],
+		[FighterState.SPECIAL_1_MEDIUM]: [
+			SpecialMovesControls.DOWN,
+			SpecialMovesControls.FORWARD_DOWN,
+			SpecialMovesControls.FORWARD,
+			SpecialMovesControls.MEDIUM_PUNCH,
+		],
+		[FighterState.SPECIAL_1_HEAVY]: [
+			SpecialMovesControls.DOWN,
+			SpecialMovesControls.FORWARD_DOWN,
+			SpecialMovesControls.FORWARD,
+			SpecialMovesControls.HEAVY_PUNCH,
+		],
+	};
 
 	// NOT Used
 	OLD_VERSION_TO_CHECK_SEQUENCE = () => {
@@ -161,20 +162,58 @@ export class ControlHistory {
 		});
 	};
 
+	// checkSequence = (time, move) => {
+	// 	if (move.cursor === move.sequence.length) {
+	// 		this.fighter.changeState(move.state, time);
+	// 		move.cursor = 0;
+	// 	}
+	// };
+
 	checkSequence = (time, move) => {
+
+		console.log("Cursor:", move.cursor, "/", move.sequence.length);
+
 		if (move.cursor === move.sequence.length) {
+			console.log("SPECIAL MOVE ACTIVATED:", move.state);
+
 			this.fighter.changeState(move.state, time);
 			move.cursor = 0;
 		}
 	};
 
+	// updateSpecialMoveSequences = (time) => {
+	// 	// this.print();
+	// 	this.fighter.specialMoves.forEach((move) => {
+	// 		if (this.history[0][0] === move.sequence[move.cursor]) {
+	// 			move.cursor++;
+	// 			this.checkSequence(time, move);
+	// 		} else move.cursor = 0;
+	// 	});
+	// };
+
 	updateSpecialMoveSequences = (time) => {
-		// this.print();
 		this.fighter.specialMoves.forEach((move) => {
-			if (this.history[0][0] === move.sequence[move.cursor]) {
+
+			const expectedInput = move.sequence[move.cursor];
+			const currentInput = this.history[0][0];
+			// console.log("Input:", currentInput);
+			
+			// Correct next input
+			if (currentInput === expectedInput) {
 				move.cursor++;
 				this.checkSequence(time, move);
-			} else move.cursor = 0;
+			}
+
+			// Wrong first input -> stay at 0
+			else if (move.cursor === 0) {
+				return;
+			}
+
+			// Wrong input after already starting sequence
+			else {
+				move.cursor = 0;
+			}
+
 		});
 	};
 

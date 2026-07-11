@@ -12,6 +12,12 @@ export const soundHadoukenId = {
 };
 
 export const soundLandId = 'sound-fighter-land';
+// export const soundYouWinId = 'sound-you-win';
+// export const soundYouLoseId = 'sound-you-lose';
+export const soundResultIds = {
+    WIN: 'sound-you-win',
+    LOSE: 'sound-you-lose',
+};
 
 export const soundHitIds = {
 	LIGHT: {

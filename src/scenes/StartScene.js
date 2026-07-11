@@ -1,6 +1,7 @@
 import { SCENE_WIDTH } from '../constants/Stage.js';
 import { LOGO_FLASH_DELAY } from '../constants/battle.js';
 import { BattleScene } from './BattleScene.js';
+import { hideMobileControls } from "../uicontrols/MobileControls.js";
 
 export class StartScene {
 	image = document.getElementById('Controls');
@@ -21,6 +22,7 @@ export class StartScene {
 	};
 
 	constructor(changeScene) {
+		hideMobileControls();
 		this.changeScene = changeScene;
 		window.removeEventListener('click', this.endStartScene);
 		window.addEventListener('click', this.endStartScene);
@@ -68,6 +70,7 @@ export class StartScene {
 			this.logoImg.width,
 			this.logoImg.height,
 			112,
+			// 150,
 			22,
 			170,
 			80
@@ -76,6 +79,7 @@ export class StartScene {
 
 	draw = (context) => {
 		context.drawImage(this.image, 0, 0);
+		// context.drawImage(this.image, 40, 0);
 		this.drawLogo(context);
 		this.drawText(context);
 	};

@@ -35,6 +35,8 @@ import {
 } from '../../constants/sounds.js';
 import { playSound, stopSound } from '../../engine/SoundHandler.js';
 import { ControlHistory } from '../../engine/ControlHistory.js';
+import { mobileInput } from '../../engine/MobileInput.js';
+import { startSpecialCooldown } from "../../uicontrols/MobileControls.js";
 
 // [Done] TODO Convert hurt: [[], [], []] to {head:[], body:[], legs:[],}
 // [FIXED]: handleHadoukenInit was being called in Fighter Idle.init TODO BUG: find what makes the hadouken sound call out of noWhere - happens when hitting and after atleast once the Hadouken is thrown
@@ -427,11 +429,13 @@ export class Fighter {
 	changeState = (newState, time) => {
 		if (!this.states[newState].validFrom.includes(this.currentState)) {
 			console.log(`Illegal move from ${this.currentState} to ${newState}`);
-			return;
+			return false;
 		}
 		this.currentState = newState;
 		this.setAnimationFrame(0, time);
 		this.states[this.currentState].init(time);
+
+		return true;
 	};
 
 	updateStageConstraints = (time, camera) => {
@@ -517,6 +521,20 @@ export class Fighter {
 			this.changeState(FighterState.WALK_FORWARD, time);
 		else if (control.isBackward(this.playerId, this.direction))
 			this.changeState(FighterState.WALK_BACKWARD, time);
+
+		// else if (this.playerId === 0 && mobileInput.special) {
+		// 	this.changeState(FighterState.SPECIAL_1_LIGHT,time);
+		//  if (success) mobileInput.special = false;
+		// }
+
+		else if (this.playerId === 0 && mobileInput.special) {
+			const success = this.changeState(FighterState.SPECIAL_1_LIGHT,time);			
+			mobileInput.special = false;
+			if(success){
+				startSpecialCooldown();
+			}
+		}
+
 		else if (control.isLightPunch(this.playerId))
 			this.changeState(FighterState.LIGHT_PUNCH, time);
 		else if (control.isMediumPunch(this.playerId))
@@ -545,6 +563,25 @@ export class Fighter {
 			this.changeState(FighterState.JUMP_FORWARD, time);
 		else if (control.isDown(this.playerId))
 			this.changeState(FighterState.CROUCH_DOWN, time);
+
+		// else if (this.playerId === 0 && mobileInput.special) {
+		// 	this.changeState(FighterState.SPECIAL_1_LIGHT,time);
+		// 	if (success) mobileInput.special = false;
+		// }
+
+
+		else if (this.playerId === 0 && mobileInput.special) {
+			console.log(
+				"Trying special from:",
+				this.currentState
+			);
+			const success = this.changeState(FighterState.SPECIAL_1_LIGHT,time);
+			mobileInput.special = false;
+			if(success){
+				startSpecialCooldown();
+			}
+		}
+
 		else if (control.isLightPunch(this.playerId))
 			this.changeState(FighterState.LIGHT_PUNCH, time);
 		else if (control.isMediumPunch(this.playerId))
@@ -566,6 +603,25 @@ export class Fighter {
 			this.changeState(FighterState.JUMP_BACKWARD, time);
 		else if (control.isDown(this.playerId))
 			this.changeState(FighterState.CROUCH_DOWN, time);
+		
+		// else if (this.playerId === 0 && mobileInput.special) {
+		// 	this.changeState(FighterState.SPECIAL_1_LIGHT,time);
+		// 	if (success) mobileInput.special = false;
+		// }
+
+
+		else if (this.playerId === 0 && mobileInput.special) {
+			console.log(
+				"Trying special from:",
+				this.currentState
+			);
+			const success = this.changeState(FighterState.SPECIAL_1_LIGHT,time);
+			mobileInput.special = false;
+			if(success){
+				startSpecialCooldown();
+			}
+		}
+
 		else if (control.isLightPunch(this.playerId))
 			this.changeState(FighterState.LIGHT_PUNCH, time);
 		else if (control.isMediumPunch(this.playerId))

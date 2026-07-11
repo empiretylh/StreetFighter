@@ -26,6 +26,10 @@ import { StatusBar } from '../entitites/overlays/StatusBar.js';
 import { KenStage } from '../entitites/stage/KenStage.js';
 import { gameState, resetGameState } from '../states/gameState.js';
 import { StartScene } from './StartScene.js';
+import { ai } from "../engine/AIHandler.js";
+import { showMobileControls } from "../uicontrols/MobileControls.js";
+import { playSound } from '../engine/SoundHandler.js';
+import { soundResultIds } from '../constants/sounds.js';
 
 export class BattleScene {
 	image = document.getElementById('Winner');
@@ -45,6 +49,7 @@ export class BattleScene {
 			new StatusBar(this.fighters, this.onTimeEnd),
 			new FpsCounter(),
 		];
+		showMobileControls();
 		resetGameState();
 		this.startRound();
 	}
@@ -163,18 +168,45 @@ export class BattleScene {
 		this.overlays.map((overlay) => overlay.update(time));
 	};
 
+	playResultVoice = () => {
+
+		if(this.winnerId === 0){
+			const sound = document.getElementById(soundResultIds.WIN);
+			playSound(sound);
+		}
+		else {
+			const sound = document.getElementById(soundResultIds.LOSE);
+			playSound(sound);
+		}
+
+	};
+
 	updateFighterHP = (time) => {
 		gameState.fighters.map((fighter, index) => {
 			if (fighter.hitPoints <= 0 && !this.battleEnded) {
 				this.fighters[index].opponent.victory = true;
 				this.winnerId = 1 - index;
+
+				// if(this.winnerId === 0){
+				// 	playSound(soundYouLoseId);
+				// }
+				// else{
+				// 	playSound(soundYouWinId);
+				// }
+
 				this.battleEnded = true;
+				this.playResultVoice();
 				this.goToStartScene();
 			}
 		});
 	};
+	
 
 	update = (time) => {
+		ai.update(
+			this.fighters[1],
+			this.fighters[0]
+		);
 		this.updateFighters(time);
 		this.updateShadows(time);
 		this.stage.update(time);

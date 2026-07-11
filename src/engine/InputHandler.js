@@ -1,6 +1,9 @@
 import { CONTROLLER_DEADZONE, controls } from '../config/controls.js';
 import { Control } from '../constants/controls.js';
 import { FighterDirection } from '../constants/fighter.js';
+import { ai } from './AIHandler.js';
+import { mobileInput } from './MobileInput.js';
+
 
 const mappedButtons = new Set(
 	controls.map(({ gamepad }) => Object.values(gamepad)).flat()
@@ -137,37 +140,53 @@ export const registerGamepadEvents = () => {
 };
 
 export const isLeft = (id) => {
+	// AI controls Player 2 (id === 1)
+	// if (id === 1 && ai.left) return true;
+	if (id === 1) return ai.left;
+
 	if (gamepadThumbstickAxes[id].x < -1 * CONTROLLER_DEADZONE) return true;
+
 	return (
-		heldKeys.has(controls[id].keyboard[Control.LEFT]) ||
-		heldGamepadButtons[id].has(controls[id].gamepad[Control.LEFT])
+		heldKeys.has(controls[id].keyboard[Control.LEFT]) || heldGamepadButtons[id].has(controls[id].gamepad[Control.LEFT]) || mobileInput.left
+		// heldGamepadButtons[id].has(controls[id].gamepad[Control.LEFT])
 	);
 };
 
 export const isUp = (id) => {
+	// if (id === 1 && ai.up) return true;
+	if (id === 1) return ai.up;
+
 	if (gamepadThumbstickAxes[id].y < -1 * CONTROLLER_DEADZONE) return true;
 
 	return (
 		heldKeys.has(controls[id].keyboard[Control.UP]) ||
-		heldGamepadButtons[id].has(controls[id].gamepad[Control.UP])
+		heldGamepadButtons[id].has(controls[id].gamepad[Control.UP]) ||
+    	mobileInput.up
 	);
 };
 
 export const isRight = (id) => {
+	// if (id === 1 && ai.right) return true;
+	if (id === 1) return ai.right;
+
 	if (gamepadThumbstickAxes[id].x > CONTROLLER_DEADZONE) return true;
 
 	return (
 		heldKeys.has(controls[id].keyboard[Control.RIGHT]) ||
-		heldGamepadButtons[id].has(controls[id].gamepad[Control.RIGHT])
+		heldGamepadButtons[id].has(controls[id].gamepad[Control.RIGHT]) ||
+    	mobileInput.right
 	);
 };
 
 export const isDown = (id) => {
+	if (id === 1) return ai.down;
+
 	if (gamepadThumbstickAxes[id].y > CONTROLLER_DEADZONE) return true;
 
 	return (
 		heldKeys.has(controls[id].keyboard[Control.DOWN]) ||
-		heldGamepadButtons[id].has(controls[id].gamepad[Control.DOWN])
+		heldGamepadButtons[id].has(controls[id].gamepad[Control.DOWN]) ||
+    	mobileInput.down
 	);
 };
 
@@ -192,21 +211,45 @@ export const isKeyPressed = (id, code, forControlHistory) => {
 };
 
 export const isLightPunch = (id, forControlHistory = false) => {
-	return isKeyPressed(id, Control.LIGHT_PUNCH, forControlHistory);
+	if (id === 1) return ai.lightPunch;
+	return (
+        mobileInput.lightPunch ||
+        isKeyPressed(id, Control.LIGHT_PUNCH, forControlHistory)
+    );
 };
 export const isMediumPunch = (id, forControlHistory = false) => {
-	return isKeyPressed(id, Control.MEDIUM_PUNCH, forControlHistory);
+	if (id === 1) return ai.mediumPunch;
+	return (
+        mobileInput.mediumPunch ||
+        isKeyPressed(id, Control.MEDIUM_PUNCH, forControlHistory)
+    );
 };
 export const isHeavyPunch = (id, forControlHistory = false) => {
-	return isKeyPressed(id, Control.HEAVY_PUNCH, forControlHistory);
+	if (id === 1) return ai.heavyPunch;
+	return (
+        mobileInput.heavyPunch ||
+        isKeyPressed(id, Control.HEAVY_PUNCH, forControlHistory)
+    );
 };
 
 export const isLightKick = (id, forControlHistory = false) => {
-	return isKeyPressed(id, Control.LIGHT_KICK, forControlHistory);
+	if (id === 1) return ai.lightKick;
+	return (
+        mobileInput.lightKick ||
+        isKeyPressed(id, Control.LIGHT_KICK, forControlHistory)
+    );
 };
 export const isMediumKick = (id, forControlHistory = false) => {
-	return isKeyPressed(id, Control.MEDIUM_KICK, forControlHistory);
+	if (id === 1) return ai.mediumKick;
+	return (
+        mobileInput.mediumKick ||
+        isKeyPressed(id, Control.MEDIUM_KICK, forControlHistory)
+    );
 };
 export const isHeavyKick = (id, forControlHistory = false) => {
-	return isKeyPressed(id, Control.HEAVY_KICK, forControlHistory);
+	if (id === 1) return ai.heavyKick;
+	return (
+        mobileInput.heavyKick ||
+        isKeyPressed(id, Control.HEAVY_KICK, forControlHistory)
+    );
 };
