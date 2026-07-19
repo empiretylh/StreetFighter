@@ -8,10 +8,18 @@ export class EntityList {
 	// Either use arrow function as i keeps the 'this' reference of parent always and doesnt have own 'this'
 	// Or use normal function and use this.removeEntity.bind(this)
 
+	// remove = (entity) => {
+	// 	this.entitiesList = this.entitiesList.filter(
+	// 		(thisEntity) => thisEntity !== entity
+	// 	);
+	// };
 	remove = (entity) => {
-		this.entitiesList = this.entitiesList.filter(
-			(thisEntity) => thisEntity !== entity
-		);
+
+		const index = this.entitiesList.indexOf(entity);
+		if (index !== -1) {
+			this.entitiesList.splice(index, 1);
+		}
+
 	};
 
 	update = (time, camera) => {
@@ -21,6 +29,9 @@ export class EntityList {
 	};
 
 	draw = (context, camera) => {
-		this.entitiesList.map((entity) => entity.draw(context, camera));
+		// this.entitiesList.map((entity) => entity.draw(context, camera));
+		for (const entity of this.entitiesList) {
+			entity.draw(context, camera);
+		}
 	};
 }

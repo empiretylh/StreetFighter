@@ -40,6 +40,7 @@ export class BattleScene {
 	hurtTimer = 0;
 	battleEnded = false;
 	winnerId = undefined;
+	aiTimer = 0;
 
 	constructor(changeScene) {
 		this.changeScene = changeScene;
@@ -84,11 +85,16 @@ export class BattleScene {
 	};
 
 	updateFighters = (time, context) => {
-		this.fighters.map((fighter) => {
+		// this.fighters.map((fighter) => {
+		// 	if (this.hurtTimer > time.previous) {
+		// 		fighter.updateHurtShake(time, this.hurtTimer);
+		// 	} else fighter.update(time, this.camera);
+		// });
+		for (const fighter of this.fighters) {
 			if (this.hurtTimer > time.previous) {
 				fighter.updateHurtShake(time, this.hurtTimer);
 			} else fighter.update(time, this.camera);
-		});
+		};
 	};
 
 	getHitSplashClass = (strength) => {
@@ -212,10 +218,19 @@ export class BattleScene {
 	
 
 	update = (time) => {
-		ai.update(
-			this.fighters[1],
-			this.fighters[0]
-		);
+		if (time.previous >= this.aiTimer) {
+
+			ai.update(
+				this.fighters[1],
+				this.fighters[0]
+			);
+
+			this.aiTimer = time.previous + 50; 
+		}
+		// ai.update(
+		// 	this.fighters[1],
+		// 	this.fighters[0]
+		// );
 		this.updateFighters(time);
 		this.updateShadows(time);
 		this.stage.update(time);
