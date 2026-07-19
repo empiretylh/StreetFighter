@@ -1,5 +1,6 @@
 import { SCENE_WIDTH } from '../constants/Stage.js';
 import { LOGO_FLASH_DELAY } from '../constants/battle.js';
+import { CharacterSelectScene } from './CharacterSelectScene.js';
 import { BattleScene } from './BattleScene.js';
 import { hideMobileControls } from "../uicontrols/MobileControls.js";
 
@@ -17,7 +18,8 @@ export class StartScene {
 	sceneEnded = false;
 
 	endStartScene = () => {
-		this.changeScene(BattleScene);
+		// this.changeScene(BattleScene);
+		this.changeScene(CharacterSelectScene);
 		window.removeEventListener('click', this.endStartScene);
 	};
 

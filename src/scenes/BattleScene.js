@@ -147,8 +147,17 @@ export class BattleScene {
 		}, 6000);
 	};
 
-	drawWinnerText = (context, id) => {
-		context.drawImage(this.image, 0, 11 * id, 70, 9, 120, 60, 140, 30);
+	drawWinnerText = (context, playerIndex) => {
+
+		const fighterId = gameState.fighters[playerIndex].id;
+		let spriteRow = 0;
+
+		if (fighterId === FighterId.KEN) {
+        	spriteRow = 1;
+    	}
+
+		context.drawImage(this.image, 0, spriteRow * 11, 70, 9, 120, 60, 140, 30);
+
 	};
 
 	onTimeEnd = (time) => {

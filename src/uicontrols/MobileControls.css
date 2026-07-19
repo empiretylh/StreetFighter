@@ -16,6 +16,7 @@ main {
 
     pointer-events: none;
     z-index: 100;
+    user-select: none;
 }
 
 #mobile-controls button {
@@ -75,6 +76,7 @@ main {
     grid-template-rows:80px 80px;
     gap:14px;
     margin-bottom: 5px;
+    user-select: none;
 }
 
 .actions button{
