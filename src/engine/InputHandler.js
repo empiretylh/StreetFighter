@@ -253,3 +253,8 @@ export const isHeavyKick = (id, forControlHistory = false) => {
         isKeyPressed(id, Control.HEAVY_KICK, forControlHistory)
     );
 };
+
+export const isSpecial = (id) => {
+    if (id === 1) return ai.special;
+    return mobileInput.special;
+};

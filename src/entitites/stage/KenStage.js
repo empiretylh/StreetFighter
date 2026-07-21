@@ -226,7 +226,8 @@ export class KenStage {
 		) {
 			this.boat.animationTimer = time.previous;
 			this.boat.animationFrame++;
-			this.boat.animationDelay = 22 + (Math.random() * 16 - 8);
+			// this.boat.animationDelay = 22 + (Math.random() * 16 - 8);
+			this.boat.animationDelay = 22;
 
 			if (this.boat.animationFrame >= this.boat.animation.length) {
 				this.boat.animationFrame = 0;
@@ -324,7 +325,15 @@ export class KenStage {
 	update = (time, context, camera) => {
 		this.updateBoat(time, context);
 		this.updateBoatPersons(time, context);
-		this.flag.update(time);
+
+		// this.flag.update(time);
+		this.frameSkip ??= false;
+		this.frameSkip = !this.frameSkip;
+
+		if(this.frameSkip){
+			this.flag.update(time);
+			this.updateBoatPersons(time);
+		}
 	};
 
 	drawBackground = (context, camera) => {

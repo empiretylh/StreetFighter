@@ -23,8 +23,12 @@ export class EntityList {
 	};
 
 	update = (time, camera) => {
-		for (const entity of this.entitiesList) {
-			entity.update(time, camera);
+		// for (const entity of this.entitiesList) {
+		// 	entity.update(time, camera);
+		// }
+		const entities = this.entitiesList;
+		for(let i=0;i<entities.length;i++){
+			entities[i].update(time,camera);
 		}
 	};
 

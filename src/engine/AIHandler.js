@@ -1,19 +1,21 @@
 import { FighterState } from "../constants/fighter.js";
+import { HEALTH_MAX_HIT_POINTS } from "../constants/battle.js";
 
 const AI_CONFIG = {
     followDistance: 70,
 	reactionDelay:15,
 	stopChance:0.04,
 
-    attackCooldown: 40,
-    attackChance: 0.1,
-
+    attackCooldown: 20,
+    attackChance: 0.5,
+	
     // crouchPunchChance: 0.05,
     // crouchKickChance: 0.03,
 
     retreatChance: 0.20,
     jumpChance: 0.05,
 };
+
 
 const AIState = {
     WALK: "walk",
@@ -36,6 +38,7 @@ export const ai = {
     lightKick: false,
     mediumKick: false,
     heavyKick: false,
+	special: false,
 
 	state: "walk",
 	stateTimer: 0,
@@ -43,22 +46,31 @@ export const ai = {
 	lastDistance:0,
 	reactionTimer:0,
 
-    update(enemy, player) {
+    update(enemy, player, aiHP, playerHP) {
 
         this.left = false;
         this.right = false;
         this.up = false;
         this.down = false;
-
+		this.special = false;
+		
         const distance = player.position.x - enemy.position.x;
+		const absDistance = Math.abs(distance);
+		const playerLowHealth = playerHP <= HEALTH_MAX_HIT_POINTS * 0.4;
+		const aiLowHealth = aiHP <= HEALTH_MAX_HIT_POINTS * 0.4;
 
+		let attackCooldown = AI_CONFIG.attackCooldown;
+		let attackChance = AI_CONFIG.attackChance;
+		let followDistance = AI_CONFIG.followDistance;
+		let stopChance = AI_CONFIG.stopChance;
+		let specialDistance = 200;
+		let specialCooldown = 60;
 
 		const playerDirectionChanged = Math.sign(distance) !== Math.sign(this.lastDistance);
 		if(playerDirectionChanged){
 			this.reactionTimer = 15; 
 		}
 		this.lastDistance = distance;
-
 
 
 		this.lightPunch = false;
@@ -77,25 +89,38 @@ export const ai = {
 		if (this.attackCooldown > 0) this.attackCooldown--;
 		if (this.stateTimer > 0) this.stateTimer--;
 
-		const absDistance = Math.abs(distance);
 
-
-		
 		if(this.reactionTimer > 0){
 			this.reactionTimer--;
 			return;
 		}
 
+		if (playerLowHealth || aiLowHealth) {
+			attackCooldown= 10;
+			attackChance = 0.8;
+			followDistance = 90;
+			stopChance = 0.01;
+			specialDistance = 140;
+    		specialCooldown = 35;
+		}
 
+		if (absDistance > specialDistance && this.attackCooldown === 0) {
 
-        if (absDistance > AI_CONFIG.followDistance) {
+			if (Math.random() < 0.3) {
+				this.special = true;
+				this.attackCooldown = specialCooldown;
+				return;
+			}
+		}
+
+        if (absDistance > followDistance) {
 
 			if(this.reactionTimer > 0){
         		this.reactionTimer--;
         		return;
     		}
 
-			if(Math.random() < AI_CONFIG.stopChance){
+			if(Math.random() < stopChance){
 				this.reactionTimer = AI_CONFIG.reactionDelay;
 				return;
 			}
@@ -108,7 +133,9 @@ export const ai = {
 			return;
 		}
 
-		if (absDistance <= AI_CONFIG.followDistance) {
+		
+
+		if (absDistance <= followDistance) {
 
 			if (this.stateTimer === 0) {
 
@@ -162,7 +189,7 @@ export const ai = {
 				
 			} else {
 
-				if (this.state === AIState.ATTACK && this.attackCooldown === 0 && Math.random() < AI_CONFIG.attackChance) {
+				if (this.state === AIState.ATTACK && this.attackCooldown === 0 && Math.random() < attackChance) {
 
 					const attack = Math.floor(Math.random() * 4);
 
@@ -184,8 +211,11 @@ export const ai = {
 							this.mediumKick = true;
 							break;
 					}
-
-					this.attackCooldown = AI_CONFIG.attackCooldown;
+					
+					this.attackCooldown = attackCooldown;
+					if ((playerLowHealth || aiLowHealth) && Math.random() < 0.5) {
+						this.attackCooldown = 4;
+					}
 				}
 
 			}

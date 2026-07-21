@@ -218,14 +218,15 @@ export class BattleScene {
 	
 
 	update = (time) => {
-		if (time.previous >= this.aiTimer) {
-
+		this.aiTimer ??= 0;
+		if(time.previous > this.aiTimer){
 			ai.update(
 				this.fighters[1],
-				this.fighters[0]
+				this.fighters[0],
+				gameState.fighters[1].hitPoints,
+    			gameState.fighters[0].hitPoints
 			);
-
-			this.aiTimer = time.previous + 50; 
+			this.aiTimer = time.previous + 80;
 		}
 		// ai.update(
 		// 	this.fighters[1],

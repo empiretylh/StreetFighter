@@ -63,16 +63,28 @@ export class StreetFighterGame {
 		this.contextHandler.update(this.frameTime);
 		
 		// this.context.filter = `brightness(${this.contextHandler.brightness}) contrast(${this.contextHandler.contrast})`;
+		// if (
+		// 	this.lastBrightness !== this.contextHandler.brightness ||
+		// 	this.lastContrast !== this.contextHandler.contrast
+		// ) {
+		// 	this.context.filter =
+		// 		`brightness(${this.contextHandler.brightness}) contrast(${this.contextHandler.contrast})`;
+
+		// 	this.lastBrightness = this.contextHandler.brightness;
+		// 	this.lastContrast = this.contextHandler.contrast;
+		// }
 		if (
-			this.lastBrightness !== this.contextHandler.brightness ||
-			this.lastContrast !== this.contextHandler.contrast
+			this.contextHandler.dimDown ||
+			this.contextHandler.glowUp
 		) {
 			this.context.filter =
-				`brightness(${this.contextHandler.brightness}) contrast(${this.contextHandler.contrast})`;
-
-			this.lastBrightness = this.contextHandler.brightness;
-			this.lastContrast = this.contextHandler.contrast;
+				`brightness(${this.contextHandler.brightness})
+				contrast(${this.contextHandler.contrast})`;
+		} else {
+			this.context.filter = "none";
 		}
+
+
 		
 		this.updateScenes();
 	};

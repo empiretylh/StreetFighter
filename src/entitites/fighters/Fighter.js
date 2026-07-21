@@ -527,11 +527,21 @@ export class Fighter {
 		//  if (success) mobileInput.special = false;
 		// }
 
-		else if (this.playerId === 0 && mobileInput.special) {
-			const success = this.changeState(FighterState.SPECIAL_1_LIGHT,time);			
-			mobileInput.special = false;
-			if(success){
-				startSpecialCooldown();
+		// else if (this.playerId === 0 && mobileInput.special) {
+		// 	const success = this.changeState(FighterState.SPECIAL_1_LIGHT,time);			
+		// 	mobileInput.special = false;
+		// 	if(success){
+		// 		startSpecialCooldown();
+		// 	}
+		// }
+		else if (control.isSpecial(this.playerId)) {
+
+			const success = this.changeState(FighterState.SPECIAL_1_LIGHT,time);
+			if (this.playerId === 0) {
+				mobileInput.special = false;
+				if (success) {
+					startSpecialCooldown();
+				}
 			}
 		}
 
@@ -569,8 +579,19 @@ export class Fighter {
 		// 	if (success) mobileInput.special = false;
 		// }
 
-
-		else if (this.playerId === 0 && mobileInput.special) {
+		
+		// else if (this.playerId === 0 && mobileInput.special) {
+		// 	console.log(
+		// 		"Trying special from:",
+		// 		this.currentState
+		// 	);
+		// 	const success = this.changeState(FighterState.SPECIAL_1_LIGHT,time);
+		// 	mobileInput.special = false;
+		// 	if(success){
+		// 		startSpecialCooldown();
+		// 	}
+		// }
+		else if (control.isSpecial(this.playerId)) {
 			console.log(
 				"Trying special from:",
 				this.currentState
@@ -581,7 +602,7 @@ export class Fighter {
 				startSpecialCooldown();
 			}
 		}
-
+		
 		else if (control.isLightPunch(this.playerId))
 			this.changeState(FighterState.LIGHT_PUNCH, time);
 		else if (control.isMediumPunch(this.playerId))
@@ -609,8 +630,19 @@ export class Fighter {
 		// 	if (success) mobileInput.special = false;
 		// }
 
-
-		else if (this.playerId === 0 && mobileInput.special) {
+		
+		// else if (this.playerId === 0 && mobileInput.special) {
+		// 	console.log(
+		// 		"Trying special from:",
+		// 		this.currentState
+		// 	);
+		// 	const success = this.changeState(FighterState.SPECIAL_1_LIGHT,time);
+		// 	mobileInput.special = false;
+		// 	if(success){
+		// 		startSpecialCooldown();
+		// 	}
+		// }
+		else if (control.isSpecial(this.playerId)) {
 			console.log(
 				"Trying special from:",
 				this.currentState
@@ -621,6 +653,7 @@ export class Fighter {
 				startSpecialCooldown();
 			}
 		}
+
 
 		else if (control.isLightPunch(this.playerId))
 			this.changeState(FighterState.LIGHT_PUNCH, time);
