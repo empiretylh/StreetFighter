@@ -18,6 +18,10 @@ let dragging = false;
 const CENTER = 70;
 const MAX_DISTANCE = 45;
 
+export function isSpecialOnCooldown() {
+    return specialCooldown;
+}
+
 function updateJoystick(clientX, clientY) {
 
     const rect = joystickBase.getBoundingClientRect();

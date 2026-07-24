@@ -3,7 +3,7 @@ import { Control } from '../constants/controls.js';
 import { FighterDirection } from '../constants/fighter.js';
 import { ai } from './AIHandler.js';
 import { mobileInput } from './MobileInput.js';
-
+import { isSpecialOnCooldown } from "../uicontrols/MobileControls.js";
 
 const mappedButtons = new Set(
 	controls.map(({ gamepad }) => Object.values(gamepad)).flat()
@@ -254,7 +254,24 @@ export const isHeavyKick = (id, forControlHistory = false) => {
     );
 };
 
+// export const isSpecial = (id, forControlHistory = false) => {
+//     if (id === 1) return ai.special;
+//     // return mobileInput.special;
+// 	return (
+//         mobileInput.special ||
+//         isKeyPressed(id, Control.SPECIAL, forControlHistory)
+//     );
+// };
+
 export const isSpecial = (id) => {
     if (id === 1) return ai.special;
-    return mobileInput.special;
+
+    if (isSpecialOnCooldown()) {
+        return false;
+    }
+
+    return (
+        mobileInput.special ||
+        isKeyPressed(id, Control.SPECIAL)
+    );
 };

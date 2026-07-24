@@ -37,7 +37,7 @@ export class CharacterSelectScene {
     };
 
     confirmBox = {
-        x:120,
+        x:140,
         y:180,
         width:100,
         height:35
@@ -45,6 +45,12 @@ export class CharacterSelectScene {
 
     constructor(changeScene) {
         this.changeScene = changeScene;
+
+        this.ryuImage = new Image();
+        this.ryuImage.src = "./public/images/Ryuface.png";
+
+        this.kenImage = new Image();
+        this.kenImage.src = "./public/images/Kenface.png";
 
         window.addEventListener("pointerdown", this.handlePointerDown);
         window.addEventListener("keydown", this.handleKeyDown);
@@ -209,34 +215,83 @@ export class CharacterSelectScene {
 
         context.fillText("SELECT FIGHTER", 120, 40);
 
-        if (this.selected === FighterId.RYU && this.arrowVisible) {
-            context.fillText(">", 40, 100);
-        }
-        context.fillText("RYU", 60, 100);
+        context.drawImage(
+            this.ryuImage,
+            10, -15,    // source x, y
+            150, 150,   // source width, height   
+            this.ryuBox.x,
+            this.ryuBox.y,
+            this.ryuBox.width,
+            this.ryuBox.height
+        );
 
-        // if (this.selected === FighterId.RYU) {
+        context.strokeStyle = this.selected === FighterId.RYU ? "yellow" : "white";
 
-        //     context.strokeStyle = "yellow";
-        //     context.lineWidth = 1;
+        context.strokeRect(
+            this.ryuBox.x,
+            this.ryuBox.y,
+            this.ryuBox.width,
+            this.ryuBox.height
+        );
 
-        //     context.strokeRect(
-        //         this.ryuBox.x,
-        //         this.ryuBox.y,
-        //         this.ryuBox.width,
-        //         this.ryuBox.height
-        //     );
+        context.fillText(
+            "RYU",
+            this.ryuBox.x + 20,
+            this.ryuBox.y + this.ryuBox.height + 20
+        );
 
-        // }
+        
 
-        if (this.selected === FighterId.KEN && this.arrowVisible) {
-            context.fillText(">", 145, 100);
-        }
-        context.fillText("KEN", 165, 100);
 
-        if (this.selected === "RANDOM" && this.arrowVisible) {
-            context.fillText(">", 250, 100);
-        }
-        context.fillText("RANDOM", 270, 100);
+        context.drawImage(
+            this.kenImage,
+            10, -15,
+            150, 150,
+            this.kenBox.x,
+            this.kenBox.y,
+            this.kenBox.width,
+            this.kenBox.height
+        );
+
+        context.strokeStyle = this.selected === FighterId.KEN ? "yellow" : "white";
+
+        context.strokeRect(
+            this.kenBox.x,
+            this.kenBox.y,
+            this.kenBox.width,
+            this.kenBox.height
+        );
+
+        context.fillText(
+            "KEN",
+            this.kenBox.x + 25,
+            this.kenBox.y + this.kenBox.height + 20
+        );
+
+        
+
+
+
+        context.strokeStyle = this.selected === "RANDOM" ? "yellow" : "white";
+
+        context.strokeRect(
+            this.randomBox.x,
+            this.randomBox.y,
+            this.randomBox.width,
+            this.randomBox.height
+        );
+
+        context.fillText(
+            "?",
+            this.randomBox.x + 42,
+            this.randomBox.y + 25
+        );
+
+        context.fillText(
+            "RANDOM",
+            this.randomBox.x,
+            this.randomBox.y + this.randomBox.height + 20
+        );
 
         context.strokeStyle="white";
         context.textAlign = "center";

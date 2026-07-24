@@ -9,6 +9,7 @@ export const Control = {
 	LIGHT_KICK: 'lightKick',
 	MEDIUM_KICK: 'mediumKick',
 	HEAVY_KICK: 'heavyKick',
+	SPECIAL: 'special'
 };
 
 export const SpecialMovesControls = {

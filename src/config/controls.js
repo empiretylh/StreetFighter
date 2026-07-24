@@ -42,6 +42,7 @@ export const controls = [
 			[Control.LIGHT_KICK]: 'KeyF',
 			[Control.MEDIUM_KICK]: 'KeyV',
 			[Control.HEAVY_KICK]: 'KeyG',
+			[Control.SPECIAL]: 'KeyT'
 		},
 	},
 	{

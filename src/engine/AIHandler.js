@@ -63,7 +63,7 @@ export const ai = {
 		let attackChance = AI_CONFIG.attackChance;
 		let followDistance = AI_CONFIG.followDistance;
 		let stopChance = AI_CONFIG.stopChance;
-		let specialDistance = 200;
+		let specialDistance = 160;
 		let specialCooldown = 60;
 
 		const playerDirectionChanged = Math.sign(distance) !== Math.sign(this.lastDistance);
@@ -95,6 +95,7 @@ export const ai = {
 			return;
 		}
 
+		// ------- Become Aggressive When Low HP ------- 
 		if (playerLowHealth || aiLowHealth) {
 			attackCooldown= 10;
 			attackChance = 0.8;
@@ -103,7 +104,10 @@ export const ai = {
 			specialDistance = 140;
     		specialCooldown = 35;
 		}
+		// ------- Become Aggressive When Low HP ------- 
 
+
+		// ------- If player 1 far away from ai , ai uses special attack ------- 
 		if (absDistance > specialDistance && this.attackCooldown === 0) {
 
 			if (Math.random() < 0.3) {
@@ -112,6 +116,8 @@ export const ai = {
 				return;
 			}
 		}
+		// ------- If player 1 far away from ai , ai uses special attack ------- 
+
 
         if (absDistance > followDistance) {
 

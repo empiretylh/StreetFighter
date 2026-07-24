@@ -253,14 +253,14 @@ export class StatusBar {
 	}
 
 	drawScores(context) {
-		this.drawScoreLabel(context, 'P1', 4);
-		this.drawScore(context, gameState.fighters[0].score, 45);
+		// this.drawScoreLabel(context, 'P1', 4);
+		// this.drawScore(context, gameState.fighters[0].score, 45);
 
-		this.drawScoreLabel(context, 'May', 133);
-		this.drawScore(context, 50000, 177);
+		// this.drawScoreLabel(context, 'May', 133);
+		// this.drawScore(context, 50000, 177);
 
-		this.drawScoreLabel(context, 'P2', 269);
-		this.drawScore(context, gameState.fighters[1].score, 309);
+		// this.drawScoreLabel(context, 'P2', 269);
+		// this.drawScore(context, gameState.fighters[1].score, 309);
 	}
 
 	draw(context) {
