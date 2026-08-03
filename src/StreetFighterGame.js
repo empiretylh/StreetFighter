@@ -7,6 +7,7 @@ import { getContext } from './utils/context.js';
 import { BattleScene } from './scenes/BattleScene.js';
 import { GAME_SPEED } from './constants/game.js';
 import { StartScene } from './scenes/StartScene.js';
+import { MainMenuScene } from './scenes/MainMenuScene.js';
 import { ContextHandler } from './engine/ContextHandler.js';
 
 export class StreetFighterGame {
@@ -36,7 +37,8 @@ export class StreetFighterGame {
 	};
 
 	constructor() {
-		this.startScene(StartScene);
+		// this.startScene(StartScene);
+		this.startScene(MainMenuScene);
 	}
 
 	updateScenes = () => {

@@ -25,7 +25,8 @@ import { FpsCounter } from '../entitites/overlays/FpsCounter.js';
 import { StatusBar } from '../entitites/overlays/StatusBar.js';
 import { KenStage } from '../entitites/stage/KenStage.js';
 import { gameState, resetGameState } from '../states/gameState.js';
-import { StartScene } from './StartScene.js';
+// import { StartScene } from './StartScene.js';
+import { MainMenuScene } from './MainMenuScene.js';
 import { ai } from "../engine/AIHandler.js";
 import { showMobileControls } from "../uicontrols/MobileControls.js";
 import { playSound } from '../engine/SoundHandler.js';
@@ -44,12 +45,18 @@ export class BattleScene {
 
 	constructor(changeScene) {
 		this.changeScene = changeScene;
+
+		document.getElementById("mobile-controls").style.display = "flex";
+    	document.getElementById("btn-back").style.display = "none";
+
 		this.stage = new KenStage();
 		this.entities = new EntityList();
+
 		this.overlays = [
 			new StatusBar(this.fighters, this.onTimeEnd),
 			new FpsCounter(),
 		];
+		
 		showMobileControls();
 		resetGameState();
 		this.startRound();
@@ -149,8 +156,9 @@ export class BattleScene {
 
 	goToStartScene = () => {
 		setTimeout(() => {
-			this.changeScene(StartScene);
-		}, 6000);
+			// this.changeScene(StartScene);
+			this.changeScene(MainMenuScene);
+		}, 4500);
 	};
 
 	drawWinnerText = (context, playerIndex) => {
