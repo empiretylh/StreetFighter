@@ -12,37 +12,40 @@ export class MainMenuScene {
     buttons = [
         {
             text: "PLAY",
-            x: 30,
-            y: 100,
-            width: 140,
-            height: 45
+            x: 370,
+            y: 420,
+            width: 240,
+            height: 75
         },
         {
             text: "LEADERBOARD",
-            x: 190,
-            y: 100,
-            width: 140,
-            height: 45
+            x: 630,
+            y: 420,
+            width: 240,
+            height: 75
         },
         {
             text: "SETTINGS",
-            x: 30,
-            y: 155,
-            width: 140,
-            height: 45
+            x: 370,
+            y: 520,
+            width: 240,
+            height: 75
         },
         {
             text: "EXIT",
-            x: 190,
-            y: 155,
-            width: 140,
-            height: 45
+            x: 630,
+            y: 520,
+            width: 240,
+            height: 75
         }
     ];
 
     arrowVisible = true;
     arrowTimer = 0;
     selected = 0;
+    logoAlpha = 0;
+    logoFadeSpeed = 0.009;
+    logoFadeDirection = 1;
 
     constructor(changeScene) {  
         this.changeScene = changeScene;
@@ -168,7 +171,7 @@ export class MainMenuScene {
 
         let hover = false;
 
-        for (const button of this.buttons) {
+        for (const [index, button] of this.buttons.entries()) {
 
             if (
                 x >= button.x &&
@@ -194,18 +197,33 @@ export class MainMenuScene {
 
     }
 
+
+
     update(time) {
 
         if (time.previous > this.arrowTimer) {
             this.arrowVisible = !this.arrowVisible;
             this.arrowTimer = time.previous + 300;
         }
+
+        this.logoAlpha += this.logoFadeSpeed * this.logoFadeDirection;
+
+        if (this.logoAlpha >= 1) {
+            this.logoAlpha = 1;
+            this.logoFadeDirection = -1;
+        }
+
+        if (this.logoAlpha <= 0) {
+            this.logoAlpha = 0;
+            this.logoFadeDirection = 1;
+        }
     }
 
     draw(context) {
-
+        
         context.fillStyle = "black";
         context.fillRect( 0, 0, context.canvas.width, context.canvas.height );
+        context.globalAlpha = this.logoAlpha;
 
         context.drawImage(
 			this.logoImg,
@@ -213,11 +231,13 @@ export class MainMenuScene {
 			0,
 			this.logoImg.width,
 			this.logoImg.height,
+			412,
 			112,
-			12,
-			170,
-			80
+			450,
+			180
 		);
+
+        context.globalAlpha = 1;
 
         // context.fillStyle = "white";
         // context.font = "bold 32px Arial";
@@ -260,7 +280,7 @@ export class MainMenuScene {
                 button.height
             );
 
-            context.font = "18px Arial";
+            context.font = "28px Arial";
             context.fillStyle = index === this.selected ? "yellow" : "white";
             context.textAlign = "center";
             context.textBaseline = "middle";

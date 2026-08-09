@@ -33,6 +33,8 @@ import { playSound } from '../engine/SoundHandler.js';
 import { soundResultIds } from '../constants/sounds.js';
 
 export class BattleScene {
+	battleCanvas = document.createElement("canvas");
+	battleContext = this.battleCanvas.getContext("2d");
 	image = document.getElementById('Winner');
 	fighters = [];
 	camera = undefined;
@@ -48,6 +50,13 @@ export class BattleScene {
 
 		document.getElementById("mobile-controls").style.display = "flex";
     	document.getElementById("btn-back").style.display = "none";
+
+
+		// Internal battle resolution
+		this.battleCanvas.width = 382;
+		this.battleCanvas.height = 224;
+
+
 
 		this.stage = new KenStage();
 		this.entities = new EntityList();
@@ -174,6 +183,26 @@ export class BattleScene {
 
 	};
 
+	drawWinnerTextHD = (context, playerIndex) => {
+
+		const fighterId = gameState.fighters[playerIndex].id;
+		let spriteRow = fighterId === FighterId.KEN ? 1 : 0;;
+		context.imageSmoothingEnabled = false;
+
+		context.drawImage(
+			this.image,
+
+			0,
+			spriteRow * 11,
+			70,
+			9,
+			430,
+			180,
+			420,
+			54
+		);
+	};
+
 	onTimeEnd = (time) => {
 		if (gameState.fighters[0].hitPoints >= gameState.fighters[1].hitPoints) {
 			this.fighters[0].victory = true;
@@ -257,21 +286,97 @@ export class BattleScene {
 
 	drawShadows(context) {
 		this.shadows.map((shadow) => shadow.draw(context, this.camera));
-	}
+	}	
+
 
 	drawOverlays(context) {
 		this.overlays.map((overlay) => overlay.draw(context, this.camera));
-		if (this.winnerId !== undefined) {
-			this.drawWinnerText(context, this.winnerId);
-		}
+		// if (this.winnerId !== undefined) {
+		// 	this.drawWinnerText(context, this.winnerId);
+		// }
 	}
 
+	// draw = (context) => {
+	// 	this.stage.drawBackground(context, this.camera);
+	// 	this.drawShadows(context);
+	// 	this.drawFighters(context);
+	// 	this.entities.draw(context, this.camera);
+	// 	this.stage.drawForeground(context, this.camera);
+	// 	this.drawOverlays(context);
+	// };
+
 	draw = (context) => {
-		this.stage.drawBackground(context, this.camera);
-		this.drawShadows(context);
-		this.drawFighters(context);
-		this.entities.draw(context, this.camera);
-		this.stage.drawForeground(context, this.camera);
-		this.drawOverlays(context);
+
+		// =========================
+		// DRAW BATTLE AT 382 × 224
+		// =========================
+
+		this.battleContext.clearRect(
+			0,
+			0,
+			this.battleCanvas.width,
+			this.battleCanvas.height
+		);
+
+		this.stage.drawBackground(
+			this.battleContext,
+			this.camera
+		);
+
+		this.drawShadows(this.battleContext);
+
+		this.drawFighters(this.battleContext);
+
+		this.entities.draw(
+			this.battleContext,
+			this.camera
+		);
+
+		this.stage.drawForeground(
+			this.battleContext,
+			this.camera
+		);
+
+		this.drawOverlays(
+			this.battleContext
+		);
+
+
+		// =========================
+		// SCALE TO 1280 × 720
+		// =========================
+
+		context.imageSmoothingEnabled = false;
+
+		context.clearRect(
+			0,
+			0,
+			context.canvas.width,
+			context.canvas.height
+		);
+
+		context.drawImage(
+			this.battleCanvas,
+			0,
+			0,
+			this.battleCanvas.width,
+			this.battleCanvas.height,
+			0,
+			0,
+			context.canvas.width,
+			context.canvas.height
+		);
+
+		// =================================
+		// DRAW WINNER TEXT AT FULL RESOLUTION
+		// =================================
+
+		if (this.winnerId !== undefined) {
+			this.drawWinnerTextHD(
+				context,
+				this.winnerId
+			);
+		}
 	};
+
 }

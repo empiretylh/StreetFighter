@@ -1,7 +1,8 @@
 import { MainMenuScene } from "./MainMenuScene.js";
 import { FighterId } from "../constants/fighter.js";
 import { gameState } from "../states/gameState.js";
-import { BattleScene } from "./BattleScene.js";
+// import { BattleScene } from "./BattleScene.js";
+import { MapSelectionScene } from "./MapSelectionScene.js";
 
 import { playSound } from "../engine/SoundHandler.js";
 import { soundSelectIds,soundConfirmId } from "../constants/sounds.js";
@@ -18,83 +19,83 @@ export class CharacterSelectScene {
     backgroundImage = new Image();
 
     previewBox = {
-        x: 15,
-        y: 35,
-        width: 130,
-        height: 180
+        x: 175,
+        y: 135,
+        width: 330,
+        height: 570
     };
 
     characterBoxes = [
         {
             id: FighterId.RYU,
-            x:170,
-            y:60,
-            width:42,
-            height:42,
+            x:570,
+            y:160,
+            width:142,
+            height:142,
         },
         {
             id: FighterId.KEN,
-            x:220,
-            y:60,
-            width:42,
-            height:42,
+            x:730,
+            y:160,
+            width:142,
+            height:142,
         },
         {
             id:"COMING",
-            x:270,
-            y:60,
-            width:42,
-            height:42,
+            x:890,
+            y:160,
+            width:142,
+            height:142,
         },
         {
             id:"COMING",
-            x:170,
-            y:110,
-            width:42,
-            height:42,
+            x:1050,
+            y:160,
+            width:142,
+            height:142,
         },
         {
             id: "COMING",
-            x: 220,
-            y: 110,
-            width: 42,
-            height: 42,
+            x:570,
+            y:330,
+            width: 142,
+            height: 142,
         },
         {
             id: "COMING",
-            x: 270,
-            y: 110,
-            width: 42,
-            height: 42,
+            x: 730,
+            y: 330,
+            width: 142,
+            height: 142,
         },
         {
             id: "COMING",
-            x: 320,
-            y: 60,
-            width: 42,
-            height: 42,
+            x: 890,
+            y: 330,
+            width: 142,
+            height: 142,
         },
         {
             id: "COMING",
-            x: 320,
-            y: 110,
-            width: 42,
-            height: 42,
+            x: 1050,
+            y: 330,
+            width: 142,
+            height: 142,
         }
     ];
 
     randomBox = {
-        x:272,
-        y:170,
-        width:90,
-        height:35
+        x:960,
+        y:530,
+        width:230,
+        height:85
     };
 
     confirmBox = {
-        x:170,
-        y:170,
-        width:90,
-        height:35
+        x:650,
+        y:530,
+        width:270,
+        height:85
     };
 
     constructor(changeScene) {
@@ -184,7 +185,8 @@ export class CharacterSelectScene {
         window.removeEventListener("pointermove", this.handlePointerMove);
 
         this.backButton.style.display = "none";
-        this.changeScene(BattleScene);
+        // this.changeScene(BattleScene);
+        this.changeScene(MapSelectionScene);
 
     }
 
@@ -299,19 +301,10 @@ export class CharacterSelectScene {
         }
     }
     
-    drawSpacedText(context, text, x, y, spacing) {
-
-        for (let i = 0; i < text.length; i++) {
-            context.fillText(
-                text[i],
-                x + i * spacing,
-                y
-            );
-        }
-
-    }
 
     draw(context) {
+
+        context.imageSmoothingEnabled = false;
 
         context.clearRect(
             0,
@@ -320,7 +313,6 @@ export class CharacterSelectScene {
             context.canvas.height
         );
 
-        context.imageSmoothingEnabled = true;
         context.drawImage(
             this.backgroundImage,
             0,
@@ -342,11 +334,18 @@ export class CharacterSelectScene {
 
             context.drawImage(
                 this.previewImages[FighterId.KEN],
-                this.previewBox.x + 8,      // move right
-                this.previewBox.y + 3,      // move down
-                120,                        // width
-                155                         // height
+                this.previewBox.x + 25,      
+                this.previewBox.y + 25,     
+                330,                        
+                470                         
             );
+
+            //  previewBox = {
+            //     x: 175,
+            //     y: 135,
+            //     width: 330,
+            //     height: 570
+            // };
 
         } else if (this.selected === FighterId.RYU) {
 
@@ -361,10 +360,35 @@ export class CharacterSelectScene {
         }
 
 
-        context.fillStyle = "white";
-        context.font = "20px Arial";
+        // TITLE
+        context.textAlign = "center";
+        context.textBaseline = "middle";
 
-        context.fillText("SELECT FIGHTER", 120, 40);
+        const titleX = 640;
+        const titleY = 65;
+
+        context.font = "bold 42px Arial";
+        context.fillStyle = "white";
+
+        context.fillText(
+            "SELECT FIGHTER",
+            titleX,
+            titleY
+        );
+
+        context.strokeStyle = "#FFD700";
+        context.lineWidth = 2;
+
+        context.beginPath();
+        context.moveTo(250, titleY);
+        context.lineTo(450, titleY);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(830, titleY);
+        context.lineTo(1030, titleY);
+        context.stroke();
+        
 
         context.strokeStyle = this.selected === FighterId.RYU ? "#FFD700" : "white";
         context.strokeStyle = this.selected === FighterId.KEN ? "#FFD700" : "white"; 
@@ -396,14 +420,14 @@ export class CharacterSelectScene {
                     box.x + 1,
                     box.y + 1,
                     box.width - 2,
-                    box.height - 2
+                    box.height - 2 
                 );
 
             } else {
 
                 context.fillStyle = "white";
-                context.font = "10px Arial";
-                context.fillText("?", box.x + 15, box.y + 25);
+                context.font = "30px Arial";
+                context.fillText("?", box.x + 60, box.y + 65);
 
             }
 
@@ -463,20 +487,20 @@ export class CharacterSelectScene {
             this.confirmBox.height
         );
 
-        context.textAlign = "left";
+        context.textAlign = "center";
         context.textBaseline = "middle";
         context.fillStyle = "white";
+        context.font = "28px Arial";
 
-        this.drawSpacedText(
-            context,
+        context.fillText(
             "CONFIRM",
-            this.confirmBox.x + 10,
-            this.confirmBox.y + this.confirmBox.height / 2,
-            10
+            this.confirmBox.x + this.confirmBox.width / 2,
+            this.confirmBox.y + this.confirmBox.height / 2
         );
 
+
         context.fillStyle = "white";
-        context.font = "12px Arial";
+        context.font = "22px Arial";
         context.textAlign = "left";
 
         context.fillText(

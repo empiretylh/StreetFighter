@@ -8,6 +8,8 @@ import { BattleScene } from './scenes/BattleScene.js';
 import { GAME_SPEED } from './constants/game.js';
 import { StartScene } from './scenes/StartScene.js';
 import { MainMenuScene } from './scenes/MainMenuScene.js';
+// import { CharacterSelectScene } from "./scenes/CharacterSelectScene.js";
+// import { MapSelectionScene } from "./scenes/MapSelectionScene.js";
 import { ContextHandler } from './engine/ContextHandler.js';
 
 export class StreetFighterGame {
@@ -39,6 +41,7 @@ export class StreetFighterGame {
 	constructor() {
 		// this.startScene(StartScene);
 		this.startScene(MainMenuScene);
+		// this.startScene(MapSelectionScene);
 	}
 
 	updateScenes = () => {
@@ -64,17 +67,6 @@ export class StreetFighterGame {
 		updateGamePads();
 		this.contextHandler.update(this.frameTime);
 		
-		// this.context.filter = `brightness(${this.contextHandler.brightness}) contrast(${this.contextHandler.contrast})`;
-		// if (
-		// 	this.lastBrightness !== this.contextHandler.brightness ||
-		// 	this.lastContrast !== this.contextHandler.contrast
-		// ) {
-		// 	this.context.filter =
-		// 		`brightness(${this.contextHandler.brightness}) contrast(${this.contextHandler.contrast})`;
-
-		// 	this.lastBrightness = this.contextHandler.brightness;
-		// 	this.lastContrast = this.contextHandler.contrast;
-		// }
 		if (
 			this.contextHandler.dimDown ||
 			this.contextHandler.glowUp
