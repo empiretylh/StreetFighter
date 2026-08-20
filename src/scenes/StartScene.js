@@ -81,7 +81,6 @@ export class StartScene {
 
 	draw = (context) => {
 		context.drawImage(this.image, 0, 0);
-		// context.drawImage(this.image, 40, 0);
 		this.drawLogo(context);
 		this.drawText(context);
 	};

@@ -57,7 +57,6 @@ export class BattleScene {
 		this.battleCanvas.height = 224;
 
 
-
 		this.stage = new KenStage();
 		this.entities = new EntityList();
 
@@ -239,13 +238,6 @@ export class BattleScene {
 				this.fighters[index].opponent.victory = true;
 				this.winnerId = 1 - index;
 
-				// if(this.winnerId === 0){
-				// 	playSound(soundYouLoseId);
-				// }
-				// else{
-				// 	playSound(soundYouWinId);
-				// }
-
 				this.battleEnded = true;
 				this.playResultVoice();
 				this.goToStartScene();
@@ -307,10 +299,7 @@ export class BattleScene {
 
 	draw = (context) => {
 
-		// =========================
-		// DRAW BATTLE AT 382 × 224
-		// =========================
-
+		// =======DRAW BATTLE AT 382 × 224=======
 		this.battleContext.clearRect(
 			0,
 			0,
@@ -342,10 +331,7 @@ export class BattleScene {
 		);
 
 
-		// =========================
-		// SCALE TO 1280 × 720
-		// =========================
-
+		// ======SCALE TO 1280 × 720======
 		context.imageSmoothingEnabled = false;
 
 		context.clearRect(
@@ -367,9 +353,6 @@ export class BattleScene {
 			context.canvas.height
 		);
 
-		// =================================
-		// DRAW WINNER TEXT AT FULL RESOLUTION
-		// =================================
 
 		if (this.winnerId !== undefined) {
 			this.drawWinnerTextHD(

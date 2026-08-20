@@ -22,12 +22,24 @@ export class ContextHandler {
 		this.dimDown = true;
 	};
 
+	// updateGlowUp = (time) => {
+	// 	if (this.brightness === 1 && this.contrast === 1) return true;
+	// 	this.brightness = Math.min(1, this.brightness + 1 * time.secondsPassed);
+	// 	this.contrast = Math.max(1, this.contrast - 2 * time.secondsPassed);
+	// 	return false;
+	// };
 	updateGlowUp = (time) => {
-		if (this.brightness === 1 && this.contrast === 1) return true;
-		this.brightness = Math.min(1, this.brightness + 1 * time.secondsPassed);
-		this.contrast = Math.max(1, this.contrast - 2 * time.secondsPassed);
-		return false;
+
+		if ( this.brightness === 1 && this.contrast === 1 ) {
+			this.glowUp = false;
+			return;
+		}
+
+		this.brightness = Math.min(1,this.brightness + time.secondsPassed);
+		this.contrast = Math.max(1,this.contrast - 2 * time.secondsPassed);
+
 	};
+
 
 	updateDimDown = (time) => {
 		if (

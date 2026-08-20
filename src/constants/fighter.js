@@ -84,6 +84,13 @@ export const FrameDelay = {
 export const FighterId = {
 	KEN: 'Ken',
 	RYU: 'Ryu',
+
+	NEWCHAR1: "NEWCHAR1",
+    NEWCHAR2: "NEWCHAR2",
+    NEWCHAR3: "NEWCHAR3",
+    NEWCHAR4: "NEWCHAR4",
+    NEWCHAR5: "NEWCHAR5",
+    NEWCHAR6: "NEWCHAR6"
 };
 
 export const PushBox = {

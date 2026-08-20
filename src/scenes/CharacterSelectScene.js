@@ -41,48 +41,106 @@ export class CharacterSelectScene {
             height:142,
         },
         {
-            id:"COMING",
+            id: FighterId.NEWCHAR1,
             x:890,
             y:160,
             width:142,
             height:142,
         },
         {
-            id:"COMING",
+            id: FighterId.NEWCHAR2,
             x:1050,
             y:160,
             width:142,
             height:142,
         },
         {
-            id: "COMING",
+            id: FighterId.NEWCHAR3,
             x:570,
             y:330,
             width: 142,
             height: 142,
         },
         {
-            id: "COMING",
+            id: FighterId.NEWCHAR4,
             x: 730,
             y: 330,
             width: 142,
             height: 142,
         },
         {
-            id: "COMING",
+            id: FighterId.NEWCHAR5,
             x: 890,
             y: 330,
             width: 142,
             height: 142,
         },
         {
-            id: "COMING",
+            id: FighterId.NEWCHAR6,
             x: 1050,
             y: 330,
             width: 142,
             height: 142,
         }
     ];
+
+    characterStats = {
+        [FighterId.RYU]: {
+            name: "RYU",
+            power: 80,
+            speed: 65,
+            toughness: 85
+        },
+
+        [FighterId.KEN]: {
+            name: "KEN",
+            power: 75,
+            speed: 85,
+            toughness: 70
+        },
+
+        [FighterId.NEWCHAR1]: {
+            name: "NEWCHAR1",
+            power: 90,
+            speed: 70,
+            toughness: 80
+        },
+
+        [FighterId.NEWCHAR2]: {
+            name: "NEWCHAR2",
+            power: 65,
+            speed: 95,
+            toughness: 65
+        },
+
+        [FighterId.NEWCHAR3]: {
+            name: "NEWCHAR3",
+            power: 80,
+            speed: 70,
+            toughness: 90
+        },
+
+        [FighterId.NEWCHAR4]: {
+            name: "NEWCHAR4",
+            power: 70,
+            speed: 95,
+            toughness: 65
+        },
+
+        [FighterId.NEWCHAR5]: {
+            name: "NEWCHAR5",
+            power: 90,
+            speed: 75,
+            toughness: 95
+        },
+
+        [FighterId.NEWCHAR6]: {
+            name: "NEWCHAR6",
+            power: 100,
+            speed: 40,
+            toughness: 100
+        }
+    };
 
     randomBox = {
         x:960,
@@ -100,27 +158,40 @@ export class CharacterSelectScene {
 
     constructor(changeScene) {
         this.changeScene = changeScene;
-
         document.getElementById("mobile-controls").style.display = "none";
-        document.getElementById("btn-back").style.display = "block";
 
-        this.backgroundImage = new Image();
         this.backgroundImage.src = "./public/images/bg1.jpg";
 
         this.previewImages = {
             [FighterId.RYU]: new Image(),
             [FighterId.KEN]: new Image()
         };
+        
+        this.previewImages[FighterId.RYU].src ="./public/images/Ryufull.png";
+        this.previewImages[FighterId.KEN].src ="./public/images/Kenfull.png";
 
         this.faceImages = {
             [FighterId.RYU]: new Image(),
-            [FighterId.KEN]: new Image()
+            [FighterId.KEN]: new Image(),
+            [FighterId.NEWCHAR1]: new Image(),
+            [FighterId.NEWCHAR2]: new Image(),
+            [FighterId.NEWCHAR3]: new Image(),
+            [FighterId.NEWCHAR4]: new Image(),
+            [FighterId.NEWCHAR5]: new Image(),
+            [FighterId.NEWCHAR6]: new Image()
         };
 
         this.faceImages[FighterId.RYU].src ="./public/images/Ryuface.png";
         this.faceImages[FighterId.KEN].src ="./public/images/Kenface.png";
-        this.previewImages[FighterId.RYU].src ="./public/images/Ryufull.png";
-        this.previewImages[FighterId.KEN].src ="./public/images/Kenfull.png";
+
+        // Temporary images
+        this.faceImages[FighterId.NEWCHAR1].src = "./public/images/Ryuface.png";
+        this.faceImages[FighterId.NEWCHAR2].src = "./public/images/Kenface.png";
+        this.faceImages[FighterId.NEWCHAR3].src = "./public/images/Ryuface.png";
+        this.faceImages[FighterId.NEWCHAR4].src = "./public/images/Kenface.png";
+        this.faceImages[FighterId.NEWCHAR5].src = "./public/images/Ryuface.png";
+        this.faceImages[FighterId.NEWCHAR6].src = "./public/images/Kenface.png";
+       
 
         window.addEventListener("pointerdown", this.handlePointerDown);
         window.addEventListener("keydown", this.handleKeyDown);
@@ -145,57 +216,217 @@ export class CharacterSelectScene {
 
     selectCharacter(id, sound) {
         if (this.selected === id) return;
-
         this.selected = id;
-
-        if (sound) {
-            playSound(sound);
-        }
+        if (sound) playSound(sound);
     }
+
+    removeEventListeners = () => {
+        window.removeEventListener("keydown", this.handleKeyDown);
+        window.removeEventListener("pointerdown", this.handlePointerDown);
+        window.removeEventListener("pointermove", this.handlePointerMove);
+    };
+
 
     confirmSelection = () => {
 
-        playSound(this.confirmSelectSound);
-        
+        const availableFighters = [
+            FighterId.RYU,
+            FighterId.KEN
+        ];
+
         if (this.selected === "RANDOM") {
+            playSound(this.confirmSelectSound);
 
-            const fighters = [
-                FighterId.RYU,
-                FighterId.KEN
-            ];
+            gameState.fighters[0].id =
+                availableFighters[
+                    Math.floor(Math.random() * availableFighters.length)
+                ];
 
-            gameState.fighters[0].id = fighters[Math.floor(Math.random() * fighters.length)];
+            gameState.fighters[1].id =
+                availableFighters[
+                    Math.floor(Math.random() * availableFighters.length)
+                ];
 
-        } else {
-            gameState.fighters[0].id = this.selected;
+            this.removeEventListeners();
+            this.changeScene(MapSelectionScene);
+            return;
         }
+
+        if (!availableFighters.includes(this.selected)) {
+            alert(`${this.characterStats[this.selected]?.name ?? this.selected} is not available yet!`);
+            return;
+        }
+
+        playSound(this.confirmSelectSound);
 
         const fighters = [
             FighterId.RYU,
             FighterId.KEN
         ];
 
-        gameState.fighters[1].id = fighters[Math.floor(Math.random() * fighters.length)];
+        // gameState.fighters[0].id =
+        //     this.selected === "RANDOM"
+        //         ? fighters[Math.floor(Math.random() * fighters.length)]
+        //         : this.selected;
 
-        this.backButton.removeEventListener("click",this.goBackToMainMenu);
+        // gameState.fighters[1].id =
+        //     fighters[Math.floor(Math.random() * fighters.length)];
 
 
-        window.removeEventListener("keydown", this.handleKeyDown);
-        window.removeEventListener("pointerdown", this.handlePointerDown);
-        window.removeEventListener("pointermove", this.handlePointerMove);
+        gameState.fighters[0].id = this.selected;
 
-        this.backButton.style.display = "none";
-        // this.changeScene(BattleScene);
+        gameState.fighters[1].id =
+            availableFighters[
+                Math.floor(Math.random() * availableFighters.length)
+            ];
+
+        this.removeEventListeners();
+        // this.backButton.style.display = "none";
         this.changeScene(MapSelectionScene);
+    };
 
-    }
+
+    drawCharacterStats = (context) => {
+
+        const stats = this.characterStats[this.selected];
+
+        if (!stats) return;
+
+        const x = this.previewBox.x;
+        const width = this.previewBox.width;
+
+        // ======STATS PANEL======
+        const panelX = x + 10;
+        const panelY = 500;
+        const panelWidth = width - 5;
+        const panelHeight = 195;
+
+        // Dark transparent overlay
+        context.fillStyle = "rgba(0, 0, 0, 0.75)";
+        context.fillRect(
+            panelX,
+            panelY,
+            panelWidth,
+            panelHeight
+        );
+
+        // Panel border
+        context.strokeStyle = "#FFD700";
+        context.lineWidth = 2;
+        context.strokeRect(
+            panelX,
+            panelY,
+            panelWidth,
+            panelHeight
+        );
+
+
+        // ======CHARACTER NAME======
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+
+        context.fillStyle = "white";
+        context.font = "bold 30px Arial";
+
+        context.fillText(
+            stats.name,
+            x + width / 2,
+            panelY + 30
+        );
+
+
+        // ======STAT BARS======
+        const labelX = panelX + 15;
+        const barX = panelX + 115;
+
+        const barWidth = 175;
+        const barHeight = 16;
+
+        const rows = [
+            {
+                label: "POWER",
+                value: stats.power,
+                y: panelY + 70
+            },
+            {
+                label: "SPEED",
+                value: stats.speed,
+                y: panelY + 105
+            },
+            {
+                label: "TOUGHNESS",
+                value: stats.toughness,
+                y: panelY + 140
+            }
+        ];
+
+
+        for (const stat of rows) {
+
+            // Label
+            context.fillStyle = "white";
+            context.font = "bold 14px Arial";
+            context.textAlign = "left";
+
+            context.fillText(
+                stat.label,
+                labelX,
+                stat.y
+            );
+
+
+            // Bar background
+            context.fillStyle = "rgba(255, 255, 255, 0.2)";
+
+            context.fillRect(
+                barX,
+                stat.y - barHeight / 2,
+                barWidth,
+                barHeight
+            );
+
+
+            // Filled portion
+            context.fillStyle = "#D4AF37";
+
+            context.fillRect(
+                barX,
+                stat.y - barHeight / 2,
+                barWidth * (stat.value / 100),
+                barHeight
+            );
+
+
+            // Border
+            context.strokeStyle = "white";
+            context.lineWidth = 1;
+
+            context.strokeRect(
+                barX,
+                stat.y - barHeight / 2,
+                barWidth,
+                barHeight
+            );
+
+
+            // Value
+            context.fillStyle = "white";
+            context.font = "12px Arial";
+            context.textAlign = "right";
+
+            context.fillText(
+                stat.value,
+                panelX + panelWidth - 8,
+                stat.y
+            );
+        }
+    };
+
 
     goBackToMainMenu = () => {
 
-        window.removeEventListener("keydown", this.handleKeyDown);
-        window.removeEventListener("pointerdown", this.handlePointerDown);
-        window.removeEventListener("pointermove", this.handlePointerMove);
-        
+        this.removeEventListeners();
+
         playSound(this.confirmSelectSound);
         this.backButton.style.display = "none";
         this.changeScene(MainMenuScene);
@@ -225,38 +456,43 @@ export class CharacterSelectScene {
         const canvas = document.querySelector("canvas");
         const rect = canvas.getBoundingClientRect();
 
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
 
-        const x = (event.clientX - rect.left) * scaleX;
-        const y = (event.clientY - rect.top) * scaleY;
+        const scale = Math.min(
+            rect.width / canvas.width,
+            rect.height / canvas.height
+        );
+
+        const renderedWidth = canvas.width * scale;
+        const renderedHeight = canvas.height * scale;
+
+        const offsetX = (rect.width - renderedWidth) / 2;
+        const offsetY = (rect.height - renderedHeight) / 2;
+
+        const x = (event.clientX - rect.left - offsetX) / scale;
+        const y = (event.clientY - rect.top - offsetY) / scale;
 
 
         for (const box of this.characterBoxes) {
 
-            if (this.inside(x, y, box)) {
-
-                if (box.id === "COMING") return;
-                let sound = box.id === FighterId.RYU ? this.leftSelectSound : this.rightSelectSound;
-                this.selectCharacter(box.id, sound);
-
+            if (!this.inside(x, y, box)) {
+                continue;
             }
 
+            const sound = box.id === FighterId.RYU
+            ? this.leftSelectSound : this.rightSelectSound;
+
+            this.selectCharacter(box.id, sound);
+            return;
         }
 
+        
         if (this.inside(x, y, this.randomBox)) {
             this.selectCharacter("RANDOM", this.randomSelectSound);
+            return;
         }
 
-        if(
-            x >= this.confirmBox.x &&
-            x <= this.confirmBox.x + this.confirmBox.width &&
-            y >= this.confirmBox.y &&
-            y <= this.confirmBox.y + this.confirmBox.height
-        ){
-            if (this.inside(x, y, this.confirmBox)) {
-                this.confirmSelection();
-            }
+        if (this.inside(x, y, this.confirmBox)) {
+            this.confirmSelection();
         }
 
     }
@@ -266,30 +502,29 @@ export class CharacterSelectScene {
         const canvas = document.querySelector("canvas");
         const rect = canvas.getBoundingClientRect();
 
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        
+        const scale = Math.min(
+            rect.width / canvas.width,
+            rect.height / canvas.height
+        );
 
-        const x = (event.clientX - rect.left) * scaleX;
-        const y = (event.clientY - rect.top) * scaleY;
+        const renderedWidth = canvas.width * scale;
+        const renderedHeight = canvas.height * scale;
 
-        let hover = false;
+        const offsetX = (rect.width - renderedWidth) / 2;
+        const offsetY = (rect.height - renderedHeight) / 2;
 
-        for (const box of this.characterBoxes) {
+        const x = (event.clientX - rect.left - offsetX) / scale;
+        const y = (event.clientY - rect.top - offsetY) / scale;
 
-            if (this.inside(x, y, box)) {
-                hover = true;
-            }
 
-        }
-
-        hover =
-            hover ||
+        const hover =
+            this.characterBoxes.some(box => this.inside(x, y, box)) ||
             this.inside(x, y, this.randomBox) ||
             this.inside(x, y, this.confirmBox);
 
         canvas.style.cursor = hover ? "pointer" : "default";
 
-        canvas.style.cursor = hover ? "pointer" : "default";
     }
 
     
@@ -359,6 +594,7 @@ export class CharacterSelectScene {
 
         }
 
+        this.drawCharacterStats(context);
 
         // TITLE
         context.textAlign = "center";
@@ -390,9 +626,6 @@ export class CharacterSelectScene {
         context.stroke();
         
 
-        context.strokeStyle = this.selected === FighterId.RYU ? "#FFD700" : "white";
-        context.strokeStyle = this.selected === FighterId.KEN ? "#FFD700" : "white"; 
-
         for (const box of this.characterBoxes) {
 
             context.lineWidth = this.selected === box.id ? 3 : 1;
@@ -423,13 +656,7 @@ export class CharacterSelectScene {
                     box.height - 2 
                 );
 
-            } else {
-
-                context.fillStyle = "white";
-                context.font = "30px Arial";
-                context.fillText("?", box.x + 60, box.y + 65);
-
-            }
+            } 
 
         }
         
@@ -442,6 +669,7 @@ export class CharacterSelectScene {
             this.randomBox.height
         );
 
+        context.lineWidth = 1;
         context.strokeStyle = this.selected === "RANDOM" ? "#FFFF00" : "white";
 
         context.strokeRect(
@@ -451,7 +679,7 @@ export class CharacterSelectScene {
             this.randomBox.height
         );
 
-
+        context.font = "28px Arial";
         context.textAlign = "center";
         context.textBaseline = "middle";
         context.fillStyle = "white";
@@ -479,6 +707,7 @@ export class CharacterSelectScene {
             this.confirmBox.height
         );
 
+        context.lineWidth = 1;
         context.strokeStyle = "white";
         context.strokeRect(
             this.confirmBox.x,

@@ -9,7 +9,14 @@ import {
 
 export class MapSelectionScene {
 
-    selected = 0;
+    selected = 0;    
+    isRandomizing = false;
+
+    randomElapsed = 0;
+    randomInterval = 0.15;
+    randomLastTime = 0;
+    randomSteps = 0;
+    randomStepCount = 0;
 
     backgroundImage = new Image();
 
@@ -26,67 +33,60 @@ export class MapSelectionScene {
     ];
 
 
-    // =========================
-    // MAP PREVIEW
-    // =========================
-
+    // ======MAP PREVIEW======
     previewBox = {
-        x: 160,
-        y: 80,
-        width: 960,
-        height: 480
+        x: 220,
+        y: 75,
+        width: 840,
+        height: 340
     };
 
+    mapThumbnails = [
+        {
+            x: 340,
+            y: 480,
+            width: 180,
+            height: 90
+        },
+        {
+            x: 550,
+            y: 480,
+            width: 180,
+            height: 90
+        },
+        {
+            x: 760,
+            y: 480,
+            width: 180,
+            height: 90
+        }
+    ];
 
-    // =========================
-    // ARROWS
-    // =========================
-
-    leftArrow = {
-        x: 200,
-        y: 290,
-        width: 140,
-        height: 350
-    };
-
-    rightArrow = {
-        x: 1000,
-        y: 290,
-        width: 140,
-        height: 350
-    };
-
-    rightArrowHitbox = {
-        x: 940,
-        y: 290,
-        width: 180,
-        height: 350
-    };
-
-
-    // =========================
-    // BUTTONS
-    // =========================
-
+    // ======BUTTONS======
     backButton = {
-        x: 390,
+        x: 200,
         y: 620,
-        width: 200,
+        width: 180,
+        height: 60
+    };
+
+
+    randomButton = {
+        x: 550,
+        y: 620,
+        width: 180,
         height: 60
     };
 
     battleButton = {
-        x: 690,
+        x: 880,
         y: 620,
-        width: 200,
+        width: 180,
         height: 60
     };
 
 
-    // =========================
-    // SOUNDS
-    // =========================
-
+    // ======SOUNDS======
     leftSelectSound = document.getElementById(soundSelectIds.LEFTCHAR);
     rightSelectSound = document.getElementById(soundSelectIds.RIGHTCHAR);
     confirmSelectSound = document.getElementById(soundConfirmId);
@@ -95,35 +95,26 @@ export class MapSelectionScene {
 
         this.changeScene = changeScene;
 
-        // =========================
-        // BACKGROUND
-        // =========================
+        // ======BACKGROUND======
         // this.backgroundImage.src = "./public/images/bg1.jpg";
 
 
-        // =========================
-        // MAP IMAGES
-        // =========================
-
+        // ======MAP IMAGES======
         this.maps[0].src = "./public/images/maps/map1.jpg";
         this.maps[1].src = "./public/images/maps/map2.jpg";
         this.maps[2].src = "./public/images/maps/map3.jpg";
 
+        this.backButtonKey = document.getElementById("btn-back");
+        this.backButtonKey.style.display = "none";
 
-        // =========================
-        // EVENTS
-        // =========================
-
+        // ======EVENTS======
         window.addEventListener("keydown",this.handleKeyDown);
         window.addEventListener("pointerdown",this.handlePointerDown);
         window.addEventListener("pointermove",this.handlePointerMove);
     }
 
 
-    // =========================
-    // COLLISION / CLICK CHECK
-    // =========================
-
+    // ======COLLISION / CLICK CHECK======
     inside = (x, y, box) => {
 
         return (
@@ -136,10 +127,7 @@ export class MapSelectionScene {
     };
 
 
-    // =========================
-    // NEXT MAP
-    // =========================
-
+    // ======NEXT MAP======
     nextMap = () => {
 
         playSound(this.rightSelectSound);
@@ -153,10 +141,7 @@ export class MapSelectionScene {
     };
 
 
-    // =========================
-    // PREVIOUS MAP
-    // =========================
-
+    // ======PREVIOUS MAP======
     previousMap = () => {
 
         playSound(this.leftSelectSound);
@@ -169,15 +154,31 @@ export class MapSelectionScene {
 
     };
 
+    // ======RANDOM MAP======
+    randomMap = () => {
 
-    // =========================
-    // BATTLE
-    // =========================
+        // Prevent clicking RANDOM multiple times
+        if (this.isRandomizing) {
+            return;
+        }
 
+
+        this.isRandomizing = true;
+        this.randomElapsed = 0;
+        this.randomStepCount = 0;
+        this.randomLastTime = performance.now();
+
+
+        // Random number of swaps
+        this.randomSteps = Math.floor(Math.random() * 5) + 5;
+        this.randomInterval = 0.02;
+    };
+
+
+    // ======BATTLE======
     confirmSelection = () => {
 
         playSound(this.confirmSelectSound);
-
 
         // Remove events before changing scene
 
@@ -190,14 +191,10 @@ export class MapSelectionScene {
     };
 
 
-    // =========================
-    // BACK
-    // =========================
-
+    // ======BACK======
     goBack = () => {
 
         playSound(this.confirmSelectSound);
-
 
         window.removeEventListener("keydown",this.handleKeyDown);
         window.removeEventListener("pointerdown",this.handlePointerDown);
@@ -208,12 +205,11 @@ export class MapSelectionScene {
     };
 
 
-    // =========================
-    // KEYBOARD
-    // =========================
-
+    // ======KEYBOARD======
     handleKeyDown = (event) => {
 
+        if (this.isRandomizing) return;
+        
         switch (event.code) {
 
             case "ArrowLeft":
@@ -229,6 +225,11 @@ export class MapSelectionScene {
             case "Escape":
 
                 this.goBack();
+                break;  
+
+            case "KeyR":
+
+                this.randomMap();
                 break;
 
             case "Enter":
@@ -241,10 +242,7 @@ export class MapSelectionScene {
     };
 
 
-    // =========================
-    // MOUSE / TOUCH
-    // =========================
-
+    // ======MOUSE / TOUCH======
     handlePointerDown = (event) => {
 
         const canvas = document.querySelector("canvas");
@@ -256,37 +254,43 @@ export class MapSelectionScene {
         const x = (event.clientX - rect.left) * scaleX;
         const y = (event.clientY - rect.top) * scaleY;
 
-        // LEFT ARROW
+        if (this.isRandomizing) return;
 
-        if (this.inside(x, y, this.leftArrow)) {
+        // MAP THUMBNAILS
+        for (let i = 0; i < this.mapThumbnails.length; i++) {
 
-            this.previousMap();
-            return;
+            if (this.inside(x, y, this.mapThumbnails[i])) {
+
+                if (this.selected !== i) {
+                    playSound(
+                        i > this.selected
+                            ? this.rightSelectSound
+                            : this.leftSelectSound
+                    );
+                }
+
+                this.selected = i;
+
+                return;
+            }
         }
 
-
-        // RIGHT ARROW
-
-        if (this.inside(x, y, this.rightArrowHitbox)) {
-
-            this.nextMap();
+        // RANDOM
+        if (this.inside(x, y, this.randomButton)) {
+            this.randomMap();
             return;
         }
 
 
         // BACK
-
         if (this.inside(x, y, this.backButton)) {
-
             this.goBack();
             return;
         }
 
 
         // BATTLE
-
         if (this.inside(x, y, this.battleButton)) {
-
             this.confirmSelection();
             return;
         }
@@ -294,10 +298,7 @@ export class MapSelectionScene {
     };
 
 
-    // =========================
-    // MOUSE HOVER
-    // =========================
-
+    // ======MOUSE HOVER======
     handlePointerMove = (event) => {
 
         const canvas =document.querySelector("canvas");
@@ -306,39 +307,76 @@ export class MapSelectionScene {
         const scaleX =canvas.width / rect.width;
         const scaleY =canvas.height / rect.height;
 
-        const x =(event.clientX - rect.left) * scaleX;
-        const y =(event.clientY - rect.top) * scaleY;
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
 
-        const hover =
-            this.inside(x, y, this.leftArrow) ||
-            this.inside(x, y, this.rightArrowHitbox) ||
+        let hover = false;
+
+        for (const thumbnail of this.mapThumbnails) {
+            if (this.inside(x, y, thumbnail)) {
+                hover = true;
+                break;
+            }
+        }
+
+        // Buttons
+        if (
             this.inside(x, y, this.backButton) ||
-            this.inside(x, y, this.battleButton);
-
+            this.inside(x, y, this.randomButton) ||
+            this.inside(x, y, this.battleButton)
+        ) {
+            hover = true;
+        }
 
         canvas.style.cursor = hover ? "pointer" : "default";
 
     };
 
 
-    // =========================
-    // UPDATE
-    // =========================
-
+    // =======UPDATE=======
     update(time) {
 
-        // Nothing needed for now
+        if (!this.isRandomizing) {
+            return;
+        }
+        const now = performance.now();
+        const delta = (now - this.randomLastTime) / 1000;
+        // const delta = time > 1
+        //     ? time / 1000
+        //     : time;
+
+        this.randomLastTime = now;
+        this.randomElapsed += delta;
+
+        if (this.randomElapsed < this.randomInterval) {
+            return;
+        }
+
+        // Reset timer
+        this.randomElapsed = 0;
+
+        // Switch map
+        this.selected++;
+
+        if (this.selected >= this.maps.length) {
+            this.selected = 0;
+        }
+
+
+        playSound(this.rightSelectSound);
+
+        this.randomStepCount++; 
+        this.randomInterval += 0.02;
+
+        if (this.randomStepCount >= this.randomSteps) {
+            this.isRandomizing = false;
+            this.confirmSelection();
+        }
 
     };
 
 
-    // =========================
-    // DRAW
-    // =========================
-
     draw(context) {
-
-        // Clear canvas
 
         context.clearRect(
             0,
@@ -348,10 +386,7 @@ export class MapSelectionScene {
         );
 
 
-        // =========================
-        // BACKGROUND
-        // =========================
-
+        // ======BACKGROUND======
         context.drawImage(
             this.backgroundImage,
             0,
@@ -361,12 +396,9 @@ export class MapSelectionScene {
         );
 
 
-        // =========================
-        // TITLE
-        // =========================
-
+        // ======TITLE======
         context.fillStyle = "white";
-        context.font = "bold 32px Arial";
+        context.font = "bold 32px Orbitron";
         context.textAlign = "center";
         context.textBaseline = "alphabetic";
 
@@ -377,10 +409,7 @@ export class MapSelectionScene {
         );
 
 
-        // =========================
-        // MAP IMAGE
-        // =========================
-
+        // ======MAP IMAGE======
         context.drawImage(
             this.maps[this.selected],
             this.previewBox.x,
@@ -390,86 +419,64 @@ export class MapSelectionScene {
         );
 
 
-        // =========================
-        // MAP NAME
-        // =========================
-
+        // ======MAP NAME======
         context.fillStyle = "white";
-        context.font = "bold 24px Arial";
+        context.font = "bold 24px Teko";
         context.textAlign = "center";
 
         context.fillText(
             this.mapNames[this.selected],
             context.canvas.width / 2,
-            600
+            440
         );
 
 
-        // =========================
-        // LEFT ARROW BACKGROUND
-        // =========================
+        // ======MAP THUMBNAILS======
+        this.mapThumbnails.forEach((thumbnail, index) => {
 
-        context.fillStyle =
-            "rgba(0,0,0,0.65)";
+            // Thumbnail image
 
-        context.beginPath();
-
-        context.arc(
-            this.leftArrow.x + 40,
-            this.leftArrow.y + 50,
-            45,
-            0,
-            Math.PI * 2
-        );
-
-        context.fill();
+            context.drawImage(
+                this.maps[index],
+                thumbnail.x,
+                thumbnail.y,
+                thumbnail.width,
+                thumbnail.height
+            );
 
 
-        // =========================
-        // RIGHT ARROW BACKGROUND
-        // =========================
+            // Selected map border
+            context.lineWidth = index === this.selected ? 5 : 2;
 
-        context.beginPath();
+            context.strokeStyle =
+                index === this.selected
+                    ? "yellow"
+                    : "white";
 
-        context.arc(
-            this.rightArrow.x + 40,
-            this.rightArrow.y + 50,
-            45,
-            0,
-            Math.PI * 2
-        );
-
-        context.fill();
-
-
-        // =========================
-        // ARROW TEXT
-        // =========================
-
-        context.fillStyle = "white";
-        context.font = "bold 50px Arial";
-        context.textAlign = "center";
-        context.textBaseline = "middle";
+            context.strokeRect(
+                thumbnail.x,
+                thumbnail.y,
+                thumbnail.width,
+                thumbnail.height
+            );
 
 
-        context.fillText(
-            "‹",
-            this.leftArrow.x + 40,
-            this.leftArrow.y + 47
-        );
+            // Map name
+            context.fillStyle = "white";
+            context.font = "bold 16px Teko";
+            context.textAlign = "center";
+            context.textBaseline = "alphabetic";
+
+            context.fillText(
+                this.mapNames[index],
+                thumbnail.x + thumbnail.width / 2,
+                thumbnail.y + thumbnail.height + 22
+            );
+
+        });
 
 
-        context.fillText(
-            "›",
-            this.rightArrow.x + 40,
-            this.rightArrow.y + 47
-        );
-
-
-        // =========================
-        // BACK BUTTON
-        // =========================
-
+        // =======BACK BUTTON=======
         context.fillStyle = "black";
 
         context.fillRect(
@@ -493,12 +500,8 @@ export class MapSelectionScene {
 
 
         context.fillStyle = "white";
-
-        context.font =
-            "bold 20px Arial";
-
+        context.font ="bold 20px Rajdhani";
         context.textAlign = "center";
-
         context.textBaseline = "middle";
 
         context.fillText(
@@ -511,10 +514,44 @@ export class MapSelectionScene {
         );
 
 
-        // =========================
-        // BATTLE BUTTON
-        // =========================
+        // ======RANDOM BUTTON======
+        context.fillStyle = "black";
 
+        context.fillRect(
+            this.randomButton.x,
+            this.randomButton.y,
+            this.randomButton.width,
+            this.randomButton.height
+        );
+
+
+        context.strokeStyle = "white";
+
+        context.lineWidth = 2;
+
+        context.strokeRect(
+            this.randomButton.x,
+            this.randomButton.y,
+            this.randomButton.width,
+            this.randomButton.height
+        );
+
+
+        context.fillStyle = "white";
+        context.font = "bold 20px Rajdhani";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+
+        context.fillText(
+            "RANDOM",
+            this.randomButton.x +
+                this.randomButton.width / 2,
+
+            this.randomButton.y +
+                this.randomButton.height / 2
+        );
+
+        // ======BATTLE BUTTON======
         context.fillStyle = "black";
 
         context.fillRect(
@@ -538,7 +575,7 @@ export class MapSelectionScene {
         context.fillStyle = "white";
 
         context.fillText(
-            "BATTLE",
+            "FIGHT",
             this.battleButton.x +
                 this.battleButton.width / 2,
 
@@ -546,8 +583,6 @@ export class MapSelectionScene {
                 this.battleButton.height / 2
         );
 
-
-        // Reset canvas state
 
         context.textAlign = "left";
         context.textBaseline = "alphabetic";

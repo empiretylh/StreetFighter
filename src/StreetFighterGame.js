@@ -9,7 +9,7 @@ import { GAME_SPEED } from './constants/game.js';
 import { StartScene } from './scenes/StartScene.js';
 import { MainMenuScene } from './scenes/MainMenuScene.js';
 // import { CharacterSelectScene } from "./scenes/CharacterSelectScene.js";
-// import { MapSelectionScene } from "./scenes/MapSelectionScene.js";
+import { MapSelectionScene } from "./scenes/MapSelectionScene.js";
 import { ContextHandler } from './engine/ContextHandler.js';
 
 export class StreetFighterGame {
@@ -31,10 +31,19 @@ export class StreetFighterGame {
 		this.sceneStarted = false;
 		this.nextScene = SceneClass;
 	};
+	// changeScene = (SceneClass) => {
+	// 	this.scene = new SceneClass(this.changeScene);
+	// 	this.sceneStarted = true;
+	// 	this.nextScene = undefined;
+	// };
 
 	startScene = (SceneClass) => {
 		this.contextHandler.startGlowUp();
-		this.scene = new SceneClass(this.changeScene);
+		// this.scene = new SceneClass(this.changeScene);
+		this.scene = new SceneClass(
+			this.changeScene,
+			this.scene
+		);
 		this.sceneStarted = true;
 	};
 
@@ -47,9 +56,15 @@ export class StreetFighterGame {
 	updateScenes = () => {
 		this.scene.draw(this.context);
 		if (this.contextHandler.dimDown) return;
-		if (!this.sceneStarted) this.startScene(this.nextScene);
+		// if (!this.sceneStarted) this.startScene(this.nextScene);
+		if (!this.sceneStarted) {
+			this.startScene(this.nextScene);
+			this.scene.draw(this.context);
+		}
 		this.scene.update(this.frameTime);
 	};
+
+
 
 	frame = (time) => {
 		window.requestAnimationFrame(this.frame.bind(this));

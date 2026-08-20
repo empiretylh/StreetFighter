@@ -16,11 +16,12 @@ let specialCooldown = false;
 let dragging = false;
 
 const CENTER = 70;
-const MAX_DISTANCE = 45;
+const MAX_DISTANCE = 50;
 
 export function isSpecialOnCooldown() {
     return specialCooldown;
 }
+
 
 function updateJoystick(clientX, clientY) {
 
@@ -32,17 +33,16 @@ function updateJoystick(clientX, clientY) {
     const distance = Math.hypot(x, y);
 
     if (distance > MAX_DISTANCE) {
-        x = x / distance * MAX_DISTANCE;
-        y = y / distance * MAX_DISTANCE;
+        x = (x / distance) * MAX_DISTANCE;
+        y = (y / distance) * MAX_DISTANCE;
     }
 
-    joystickStick.style.transform =
-        `translate(${x}px, ${y}px)`;
-
-    const deadzone = 0.3;
+    joystickStick.style.transform =  `translate(${x}px, ${y}px)`;
 
     const nx = x / MAX_DISTANCE;
     const ny = y / MAX_DISTANCE;
+
+    const deadzone = 0.3;
 
     mobileInput.left = nx < -deadzone;
     mobileInput.right = nx > deadzone;
@@ -51,11 +51,23 @@ function updateJoystick(clientX, clientY) {
     mobileInput.down = ny > deadzone;
 }
 
+function resetJoystick() {
+
+    dragging = false;
+
+    joystickStick.style.transform = "translate(0px, 0px)";
+
+    mobileInput.left = false;
+    mobileInput.right = false;
+    mobileInput.up = false;
+    mobileInput.down = false;
+}
+
 joystickBase.addEventListener("pointerdown", (e) => {
 
+    e.preventDefault();
     dragging = true;
     joystickBase.setPointerCapture(e.pointerId);
-
     updateJoystick(e.clientX, e.clientY);
 
 });
@@ -63,25 +75,12 @@ joystickBase.addEventListener("pointerdown", (e) => {
 joystickBase.addEventListener("pointermove", (e) => {
 
     if (!dragging) return;
-
+    e.preventDefault();
     updateJoystick(e.clientX, e.clientY);
 
 });
 
-joystickBase.addEventListener("pointerup", () => {
-
-    dragging = false;
-
-    joystickStick.style.transform = "translate(0px,0px)";
-
-    mobileInput.left = false;
-    mobileInput.right = false;
-    mobileInput.up = false;
-    mobileInput.down = false;
-
-});
-
-
+joystickBase.addEventListener("pointerup", resetJoystick);
 
 
 function bind(button, key) {
