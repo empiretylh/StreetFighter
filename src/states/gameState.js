@@ -2,29 +2,36 @@ import { FighterId } from '../constants/fighter.js';
 import { createDefaultFighterState } from './fighterState.js';
 
 export var gameState = {
-	fighters: [
-		createDefaultFighterState(FighterId.RYU),
-		createDefaultFighterState(FighterId.KEN),
-	],
+    fighters: [
+        createDefaultFighterState(FighterId.RYU),
+        createDefaultFighterState(FighterId.KEN),
+    ],
+
+    battleResult: {
+        winnerId: undefined,
+        loserId: undefined,
+    },
 };
 
-// export const resetGameState = () => {
-// 	gameState = {
-// 		fighters: [
-// 			createDefaultFighterState(FighterId.RYU),
-// 			createDefaultFighterState(FighterId.KEN),
-// 		],
-// 	};
-// };
 
 export const resetGameState = () => {
-	const player1Id = gameState.fighters[0].id;
-	const player2Id = gameState.fighters[1].id;
+    gameState = {
+        fighters: [
+            createDefaultFighterState(FighterId.RYU),
+            createDefaultFighterState(FighterId.KEN),
+        ],
 
-	gameState = {
-		fighters: [
-			createDefaultFighterState(player1Id),
-			createDefaultFighterState(player2Id),
-		],
-	};
+        battleResult: {
+            winnerId: undefined,
+            loserId: undefined,
+        },
+    };
+};
+
+
+export const resetBattleResult = () => {
+    gameState.battleResult = {
+        winnerId: undefined,
+        loserId: undefined,
+    };
 };

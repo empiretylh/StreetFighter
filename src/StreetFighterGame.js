@@ -8,7 +8,9 @@ import { BattleScene } from './scenes/BattleScene.js';
 import { GAME_SPEED } from './constants/game.js';
 import { StartScene } from './scenes/StartScene.js';
 import { MainMenuScene } from './scenes/MainMenuScene.js';
-// import { CharacterSelectScene } from "./scenes/CharacterSelectScene.js";
+import { LeaderboardScene } from "./scenes/MainMenu/LeaderboardScene.js";
+import { CharacterSelectScene1 } from "./scenes/CharacterSelectScene1.js";
+import { LoadingScene } from "./scenes/LoadingScene.js";
 import { MapSelectionScene } from "./scenes/MapSelectionScene.js";
 import { ContextHandler } from './engine/ContextHandler.js';
 
@@ -48,9 +50,9 @@ export class StreetFighterGame {
 	};
 
 	constructor() {
-		// this.startScene(StartScene);
-		this.startScene(MainMenuScene);
-		// this.startScene(MapSelectionScene);
+		// this.startScene(MainMenuScene);
+		this.startScene(LoadingScene);
+		// this.startScene(CharacterSelectScene1);
 	}
 
 	updateScenes = () => {

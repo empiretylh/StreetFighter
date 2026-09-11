@@ -1,9 +1,9 @@
 // import { MainMenuScene } from "./MainMenuScene.js";
-import { playSound } from "../engine/SoundHandler.js";
-import { soundSelectIds,soundConfirmId } from "../constants/sounds.js";
+import { playSound } from "../../engine/SoundHandler.js";
+import { soundSelectIds,soundConfirmId } from "../../constants/sounds.js";
 // import { GameplaySettings } from "./settings/GameplaySettings.js";
 // import { ControlsSettings } from "./settings/ControlsSettings.js";
-import { AudioSettings } from "./settings/AudioSettings.js";
+import { AudioSettings } from "../settings/AudioSettings.js";
 // import { VideoSettings } from "./settings/VideoSettings.js";
 // import { AccessibilitySettings } from "./settings/AccessibilitySettings.js";
 // import { LanguageSettings } from "./settings/LanguageSettings.js";
@@ -484,6 +484,7 @@ export class SettingsScene {
         const x = (event.clientX - rect.left) * scaleX;
         const y = (event.clientY - rect.top) * scaleY;
 
+        
         if (
             this.selectedCategory === 0 &&
             x >= 500 &&
@@ -517,15 +518,17 @@ export class SettingsScene {
             }
         }
 
-        // =========================
-        // CATEGORIES
-        // =========================
-
+        
+        
+        // ======CATEGORIES======
         for (const [index, category] of this.categories.entries()) {
 
+            const hitboxPaddingLeft = 95;
+            const hitboxPaddingRight = 70;
+
             if (
-                x >= category.x &&
-                x <= category.x + category.width &&
+                x >= category.x + hitboxPaddingLeft &&
+                x <= category.x + category.width + hitboxPaddingRight &&
                 y >= category.y &&
                 y <= category.y + category.height
             ) {
@@ -546,21 +549,39 @@ export class SettingsScene {
         }
 
 
-        // =========================
-        // BOTTOM BUTTONS
-        // =========================
-
+       
+        // ======BOTTOM BUTTONS======
+        // const buttons = [
+        //     this.backButton,
+        //     this.resetButton,
+        //     this.applyButton
+        // ];
         const buttons = [
-            this.backButton,
-            this.resetButton,
-            this.applyButton
+            {
+                ...this.backButton,
+                hitboxPaddingLeft: 100,
+                hitboxPaddingRight: 40
+            },
+            {
+                ...this.resetButton,
+                hitboxPaddingLeft: 30,
+                hitboxPaddingRight: -30
+            },
+            {
+                ...this.applyButton,
+                hitboxPaddingLeft: -30,
+                hitboxPaddingRight: 30
+            }
         ];
 
         for (const [index, button] of buttons.entries()) {
 
+            // const hitboxPaddingLeft = 100;
+            // const hitboxPaddingRight = 40;
+
             if (
-                x >= button.x &&
-                x <= button.x + button.width &&
+                x >= button.x + button.hitboxPaddingLeft &&
+                x <= button.x + button.width + button.hitboxPaddingRight &&
                 y >= button.y &&
                 y <= button.y + button.height
             ) {
@@ -614,9 +635,12 @@ export class SettingsScene {
         // ======CATEGORIES======
         for (const [index, category] of this.categories.entries()) {
 
+            const hitboxPaddingLeft = 95;
+            const hitboxPaddingRight = 70;
+
             if (
-                x >= category.x &&
-                x <= category.x + category.width &&
+                x >= category.x + hitboxPaddingLeft &&
+                x <= category.x + category.width + hitboxPaddingRight &&
                 y >= category.y &&
                 y <= category.y + category.height
             ) {
@@ -632,17 +656,37 @@ export class SettingsScene {
 
 
         // =====BOTTOM BUTTONS=====
+        // const buttons = [
+        //     this.backButton,
+        //     this.resetButton,
+        //     this.applyButton
+        // ];
         const buttons = [
-            this.backButton,
-            this.resetButton,
-            this.applyButton
+            {
+                ...this.backButton,
+                hitboxPaddingLeft: 120,
+                hitboxPaddingRight: 40
+            },
+            {
+                ...this.resetButton,
+                hitboxPaddingLeft: 30,
+                hitboxPaddingRight: -30
+            },
+            {
+                ...this.applyButton,
+                hitboxPaddingLeft: -30,
+                hitboxPaddingRight: -220
+            }
         ];
 
         for (const [index, button] of buttons.entries()) {
+            
+            // const hitboxPaddingLeft = 120;
+            // const hitboxPaddingRight = 60;
 
             if (
-                x >= button.x &&
-                x <= button.x + button.width &&
+                x >= button.x + button.hitboxPaddingLeft &&
+                x <= button.x + button.width + button.hitboxPaddingRight &&
                 y >= button.y &&
                 y <= button.y + button.height
             ) {

@@ -27,6 +27,7 @@ import { KenStage } from '../entitites/stage/KenStage.js';
 import { gameState, resetGameState } from '../states/gameState.js';
 // import { StartScene } from './StartScene.js';
 import { MainMenuScene } from './MainMenuScene.js';
+import { BattleResultScene } from './BattleResultScene.js';
 import { ai } from "../engine/AIHandler.js";
 import { showMobileControls } from "../uicontrols/MobileControls.js";
 import { playSound } from '../engine/SoundHandler.js';
@@ -52,7 +53,6 @@ export class BattleScene {
     	document.getElementById("btn-back").style.display = "none";
 
 
-		// Internal battle resolution
 		this.battleCanvas.width = 382;
 		this.battleCanvas.height = 224;
 
@@ -66,7 +66,7 @@ export class BattleScene {
 		];
 		
 		showMobileControls();
-		resetGameState();
+		// resetGameState();
 		this.startRound();
 	}
 
@@ -100,11 +100,6 @@ export class BattleScene {
 	};
 
 	updateFighters = (time, context) => {
-		// this.fighters.map((fighter) => {
-		// 	if (this.hurtTimer > time.previous) {
-		// 		fighter.updateHurtShake(time, this.hurtTimer);
-		// 	} else fighter.update(time, this.camera);
-		// });
 		for (const fighter of this.fighters) {
 			if (this.hurtTimer > time.previous) {
 				fighter.updateHurtShake(time, this.hurtTimer);
@@ -164,10 +159,14 @@ export class BattleScene {
 
 	goToStartScene = () => {
 		setTimeout(() => {
-			// this.changeScene(StartScene);
 			this.changeScene(MainMenuScene);
 		}, 4500);
 	};
+	// goToResultScene = () => {
+	// 	setTimeout(() => {
+	// 		this.changeScene(BattleResultScene);
+	// 	}, 1500);
+	// };
 
 	drawWinnerText = (context, playerIndex) => {
 
@@ -202,18 +201,74 @@ export class BattleScene {
 		);
 	};
 
-	onTimeEnd = (time) => {
-		if (gameState.fighters[0].hitPoints >= gameState.fighters[1].hitPoints) {
-			this.fighters[0].victory = true;
-			this.fighters[1].changeState(FighterState.KO, time);
-			this.winnerId = 0;
-		} else {
-			this.fighters[1].victory = true;
-			this.fighters[0].changeState(FighterState.KO, time);
-			this.winnerId = 1;
+	endBattle = (winnerId, loserId, time) => {
+
+		if (this.battleEnded) {
+			return;
 		}
-		this.goToStartScene();
+
+		this.winnerId = winnerId;
+		this.battleEnded = true;
+
+		gameState.battleResult.winnerId = winnerId;
+		gameState.battleResult.loserId = loserId;
+
+		this.fighters[winnerId].victory = true;
+
+		this.fighters[loserId].changeState(
+			FighterState.KO,
+			time
+		);
+
+		this.playResultVoice();
+
+		// this.goToResultScene();
 	};
+
+	// onTimeEnd = (time) => {
+	// 	if (gameState.fighters[0].hitPoints >= gameState.fighters[1].hitPoints) {
+	// 		this.fighters[0].victory = true;
+	// 		this.fighters[1].changeState(FighterState.KO, time);
+	// 		this.winnerId = 0;
+	// 	} else {
+	// 		this.fighters[1].victory = true;
+	// 		this.fighters[0].changeState(FighterState.KO, time);
+	// 		this.winnerId = 1;
+	// 	}
+		
+		
+	// 	this.playResultVoice();
+	// 	// this.goToStartScene();
+	// 	this.goToResultScene();
+	// };
+
+	onTimeEnd = (time) => {
+
+		if (this.battleEnded) {
+			return;
+		}
+
+		let winnerId;
+		let loserId;
+
+		if (
+			gameState.fighters[0].hitPoints >=
+			gameState.fighters[1].hitPoints
+		) {
+			winnerId = 0;
+			loserId = 1;
+		} else {
+			winnerId = 1;
+			loserId = 0;
+		}
+
+		this.endBattle(
+			winnerId,
+			loserId,
+			time
+		);
+	};
+
 
 	updateOverlays = (time) => {
 		this.overlays.map((overlay) => overlay.update(time));
@@ -238,13 +293,39 @@ export class BattleScene {
 				this.fighters[index].opponent.victory = true;
 				this.winnerId = 1 - index;
 
+				gameState.battleResult.winnerId = this.winnerId;
+            	gameState.battleResult.loserId = index;
+
 				this.battleEnded = true;
 				this.playResultVoice();
 				this.goToStartScene();
+				// this.goToResultScene();
 			}
 		});
 	};
-	
+	// updateFighterHP = (time) => {
+
+	// 	if (this.battleEnded) {
+	// 		return;
+	// 	}
+
+	// 	gameState.fighters.forEach((fighter, index) => {
+
+	// 		if (fighter.hitPoints <= 0) {
+
+	// 			const loserId = index;
+	// 			const winnerId = 1 - index;
+
+	// 			this.endBattle(
+	// 				winnerId,
+	// 				loserId,
+	// 				time
+	// 			);
+	// 		}
+	// 	});
+	// };	
+
+
 
 	update = (time) => {
 		this.aiTimer ??= 0;
@@ -257,10 +338,7 @@ export class BattleScene {
 			);
 			this.aiTimer = time.previous + 80;
 		}
-		// ai.update(
-		// 	this.fighters[1],
-		// 	this.fighters[0]
-		// );
+
 		this.updateFighters(time);
 		this.updateShadows(time);
 		this.stage.update(time);
@@ -288,14 +366,6 @@ export class BattleScene {
 		// }
 	}
 
-	// draw = (context) => {
-	// 	this.stage.drawBackground(context, this.camera);
-	// 	this.drawShadows(context);
-	// 	this.drawFighters(context);
-	// 	this.entities.draw(context, this.camera);
-	// 	this.stage.drawForeground(context, this.camera);
-	// 	this.drawOverlays(context);
-	// };
 
 	draw = (context) => {
 
@@ -313,7 +383,6 @@ export class BattleScene {
 		);
 
 		this.drawShadows(this.battleContext);
-
 		this.drawFighters(this.battleContext);
 
 		this.entities.draw(

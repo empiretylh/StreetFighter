@@ -1,7 +1,9 @@
 import { CharacterSelectScene } from "./CharacterSelectScene.js";
+import { CharacterSelectScene1 } from "./CharacterSelectScene1.js";
 import { playSound } from "../engine/SoundHandler.js";
 import { soundSelectIds,soundConfirmId } from "../constants/sounds.js";
-import { SettingsScene } from "./SettingsScene.js";
+import { SettingsScene } from "./MainMenu/SettingsScene.js";
+import { LeaderboardScene } from "./MainMenu/LeaderboardScene.js";
 
 export class MainMenuScene {
 
@@ -13,7 +15,7 @@ export class MainMenuScene {
 
     buttons = [
         {
-            text: "PLAY",
+            text: "【ᑭᒪᗩY】",
             x: 490,
             y: 550,
             width: 300,
@@ -61,22 +63,32 @@ export class MainMenuScene {
     exitIcon = new Image();
     goldCoinImg = new Image();
     diamondImg = new Image();
+    plusImg = new Image();
 
     profilePanel = {
         x: 890,
         y: 25,
         width: 365,
-        height: 80
+        height: 105
     };
 
     profileAvatar = {
-        x: 905,
-        y: 35,
-        size: 60
+        x: 900,
+        y: 42,
+        size: 70
     };
 
     profileName = "User";
-    profileRank = "Rookie";
+    profileLevel = 1;
+    profileXP = 0;
+    profileXPRequired = 1000;
+
+    xpBar = {
+        x: 980,
+        y: 92,
+        width: 180,
+        height: 10
+    };
 
     goldCoins = 1250;
     diamonds = 85;
@@ -91,14 +103,16 @@ export class MainMenuScene {
     constructor(changeScene) {  
         this.changeScene = changeScene;
         this.backgroundImg.src = "./public/images/bg1.jpg";
-        this.profileImg.src = "./public/images/profile.png";
 
         this.leaderboardIcon.src = "./public/images/menu/trophy.png";
         this.settingsIcon.src = "./public/images/menu/settings1.png";
         this.exitIcon.src = "./public/images/menu/exit.png";
 
+        this.profileImg.src = "./public/images/profile.png";
         this.goldCoinImg.src = "./public/images/menu/coin.png";
         this.diamondImg.src = "./public/images/menu/diamond.png";
+        this.plusImg.src = "./public/images/menu/greenplus.png";
+
 
         document.getElementById("mobile-controls").style.display = "none";
         document.getElementById("btn-back").style.display = "none";
@@ -178,11 +192,17 @@ export class MainMenuScene {
                 window.removeEventListener("pointermove", this.handlePointerMove);
 
                 playSound(this.confirmSelectSound);
-                this.changeScene(CharacterSelectScene);
+                // this.changeScene(CharacterSelectScene);
+                this.changeScene(CharacterSelectScene1);
                 break;
 
             case 1:
-                alert("Leaderboard - Coming Soon");
+                window.removeEventListener("keydown",this.handleKeyDown);
+                window.removeEventListener("pointerdown",this.handlePointerDown);
+                window.removeEventListener("pointermove",this.handlePointerMove);
+
+                playSound(this.confirmSelectSound);
+                this.changeScene(LeaderboardScene);
                 break;
 
             case 2:
@@ -214,9 +234,12 @@ export class MainMenuScene {
 
         for (const [index, button] of this.buttons.entries()) {
 
+            const hitboxPaddingLeft  = 100;
+            const hitboxPaddingRight = 60;
+
             if (
-                x >= button.x &&
-                x <= button.x + button.width &&
+                x >= button.x + hitboxPaddingLeft  &&
+                x <= button.x + button.width + hitboxPaddingRight &&
                 y >= button.y &&
                 y <= button.y + button.height
             ) {
@@ -244,9 +267,12 @@ export class MainMenuScene {
 
         for (const [index, button] of this.buttons.entries()) {
 
+            const hitboxPaddingLeft = 90;
+            const hitboxPaddingRight = 60;
+
             if (
-                x >= button.x &&
-                x <= button.x + button.width &&
+                x >= button.x + hitboxPaddingLeft &&
+                x <= button.x + button.width + hitboxPaddingRight &&
                 y >= button.y &&
                 y <= button.y + button.height
             ) {
@@ -307,11 +333,9 @@ export class MainMenuScene {
     }
 
 
-
     drawProfile = (context) => {
 
         //======= PROFILE PANEL =======
-
         context.fillStyle = "rgba(0, 0, 0, 1)";
 
         context.fillRect(
@@ -333,7 +357,6 @@ export class MainMenuScene {
 
 
         //======= PROFILE AVATAR =======
-
         context.drawImage(
             this.profileImg,
             this.profileAvatar.x,
@@ -354,9 +377,8 @@ export class MainMenuScene {
 
 
         //======= NAME =======
-
         context.fillStyle = "white";
-        context.font = "bold 18px Arial";
+        context.font = "bold 20px Teko";
         context.textAlign = "left";
         context.textBaseline = "alphabetic";
 
@@ -368,23 +390,59 @@ export class MainMenuScene {
 
 
         //======= RANK =======
-
         context.fillStyle = "#aaaaaa";
-        context.font = "14px Arial";
+        context.font = "bold 16px Rajdhani";
 
         context.fillText(
-            this.profileRank,
+            `LV. ${this.profileLevel}`,
             980,
             78
         );
 
+        const xpPercent = this.profileXP / this.profileXPRequired;
+
+        context.fillStyle = "rgba(255,255,255,0.15)";
+
+        context.fillRect(
+            this.xpBar.x,
+            this.xpBar.y,
+            this.xpBar.width,
+            this.xpBar.height
+        );
+
+        context.fillStyle = "#D4AF37";
+        context.fillRect(
+            this.xpBar.x,
+            this.xpBar.y,
+            this.xpBar.width * xpPercent,
+            this.xpBar.height
+        );
+
+        context.strokeStyle = "rgba(255,255,255,0.4)";
+        context.lineWidth = 1;
+
+        context.strokeRect(
+            this.xpBar.x,
+            this.xpBar.y,
+            this.xpBar.width,
+            this.xpBar.height
+        );
+
+        context.fillStyle = "#aaaaaa";
+        context.font = "14px Rajdhani";
+
+        context.fillText(
+            `${this.profileXP} / ${this.profileXPRequired} XP`,
+            980,
+            115
+        );
+
 
         //======= GOLD COINS & DIAMONDS =======
-
         context.drawImage(
             this.goldCoinImg,
             1065,
-            43,
+            40,
             20,
             20
         );
@@ -392,20 +450,19 @@ export class MainMenuScene {
         context.drawImage(
             this.diamondImg,
             1065,
-            66,
-            20,
-            20
+            63,
+            18,
+            18
         );
 
         context.fillStyle = "white";
-        context.font = "bold 20px Arial";
+        context.font = "bold 18px Arial";
 
-        context.fillText(this.goldCoins, 1090, 60);
-        context.fillText(this.diamonds, 1090, 84);
+        context.fillText(this.goldCoins, 1090, 57);
+        context.fillText(this.diamonds, 1090, 80);
 
 
-        //======= PLUS BUTTON =======
-
+        //======= PLUS Image =======
         context.fillStyle = "rgba(255,255,255,0.08)";
 
         context.fillRect(
@@ -425,16 +482,14 @@ export class MainMenuScene {
             this.plusButton.height
         );
 
-        context.fillStyle = "gold";
-        context.font = "bold 24px Arial";
-        context.textAlign = "center";
-        context.textBaseline = "middle";
-
-        context.fillText(
-            "+",
-            this.plusButton.x + this.plusButton.width / 2,
-            this.plusButton.y + this.plusButton.height / 2
+        context.drawImage(
+            this.plusImg,
+            this.plusButton.x + 7,
+            this.plusButton.y + 7,
+            21,
+            21
         );
+
     };
 
     drawLogo = (context) => {
@@ -491,8 +546,7 @@ export class MainMenuScene {
 
 
             //======= BUTTON TEXT =======
-
-            context.font = isPlay ? "bold 42px Arial" : "bold 22px Arial";
+            context.font = isPlay ? "bold 42px Teko" : "bold 22px Teko";
             context.fillStyle = "white";
 
             context.textAlign = "center";
@@ -542,7 +596,7 @@ export class MainMenuScene {
             if (isSelected && !isPlay) {
 
                 context.fillStyle = "white";
-                context.font = "bold 28px Arial";
+                context.font = "bold 28px Rajdhani";
 
                 context.textAlign = "center";
                 context.textBaseline = "middle";

@@ -180,8 +180,6 @@ export class MapSelectionScene {
 
         playSound(this.confirmSelectSound);
 
-        // Remove events before changing scene
-
         window.removeEventListener("keydown",this.handleKeyDown);
         window.removeEventListener("pointerdown",this.handlePointerDown);
         window.removeEventListener("pointermove",this.handlePointerMove);

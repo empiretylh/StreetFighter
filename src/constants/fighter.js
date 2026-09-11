@@ -90,7 +90,11 @@ export const FighterId = {
     NEWCHAR3: "NEWCHAR3",
     NEWCHAR4: "NEWCHAR4",
     NEWCHAR5: "NEWCHAR5",
-    NEWCHAR6: "NEWCHAR6"
+    NEWCHAR6: "NEWCHAR6",
+	NEWCHAR7: "NEWCHAR7",
+    NEWCHAR8: "NEWCHAR8",
+    NEWCHAR9: "NEWCHAR9",
+    NEWCHAR10: "NEWCHAR10"
 };
 
 export const PushBox = {

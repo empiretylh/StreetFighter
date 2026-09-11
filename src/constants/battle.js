@@ -1,6 +1,6 @@
 import { FRAME_TIME } from './game.js';
 
-export const BATTLE_TIME = 99;
+export const BATTLE_TIME = 90;
 
 export const TIME_DELAY = 40 * FRAME_TIME;
 export const TIME_FLASH_DELAY = 3 * FRAME_TIME;
