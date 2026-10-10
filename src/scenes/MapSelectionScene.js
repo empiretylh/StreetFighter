@@ -1,3 +1,4 @@
+import { gameState } from "../states/gameState.js";
 import { BattleScene } from "./BattleScene.js";
 import { CharacterSelectScene } from "./CharacterSelectScene.js";
 
@@ -6,6 +7,7 @@ import {
     soundSelectIds,
     soundConfirmId
 } from "../constants/sounds.js";
+import { CharacterSelectScene1 } from "./CharacterSelectScene1.js";
 
 export class MapSelectionScene {
 
@@ -127,6 +129,50 @@ export class MapSelectionScene {
     };
 
 
+    
+    getCanvasPoint = (event) => {
+
+        const canvas = document.querySelector("canvas");
+
+        if (!canvas) {
+            return null;
+        }
+
+        const rect = canvas.getBoundingClientRect();
+
+        // Match the actual rendered canvas area
+        const scale = Math.min(
+            rect.width / canvas.width,
+            rect.height / canvas.height
+        );
+
+        const renderedWidth = canvas.width * scale;
+        const renderedHeight = canvas.height * scale;
+
+        const offsetX = (rect.width - renderedWidth) / 2;
+        const offsetY = (rect.height - renderedHeight) / 2;
+
+        const x =
+            (event.clientX - rect.left - offsetX) / scale;
+
+        const y =
+            (event.clientY - rect.top - offsetY) / scale;
+
+        if (
+            x < 0 ||
+            x > canvas.width ||
+            y < 0 ||
+            y > canvas.height
+        ) {
+            return null;
+        }
+
+        return { canvas, x, y };
+    };
+
+
+
+
     // ======NEXT MAP======
     nextMap = () => {
 
@@ -169,7 +215,6 @@ export class MapSelectionScene {
         this.randomLastTime = performance.now();
 
 
-        // Random number of swaps
         this.randomSteps = Math.floor(Math.random() * 5) + 5;
         this.randomInterval = 0.02;
     };
@@ -179,7 +224,8 @@ export class MapSelectionScene {
     confirmSelection = () => {
 
         playSound(this.confirmSelectSound);
-
+        gameState.selectedMap = this.selected;
+        
         window.removeEventListener("keydown",this.handleKeyDown);
         window.removeEventListener("pointerdown",this.handlePointerDown);
         window.removeEventListener("pointermove",this.handlePointerMove);
@@ -198,7 +244,7 @@ export class MapSelectionScene {
         window.removeEventListener("pointerdown",this.handlePointerDown);
         window.removeEventListener("pointermove",this.handlePointerMove);
 
-        this.changeScene(CharacterSelectScene);
+        this.changeScene(CharacterSelectScene1);
 
     };
 
@@ -243,16 +289,13 @@ export class MapSelectionScene {
     // ======MOUSE / TOUCH======
     handlePointerDown = (event) => {
 
-        const canvas = document.querySelector("canvas");
-        const rect = canvas.getBoundingClientRect();
+        const point = this.getCanvasPoint(event);
 
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        if (!point || this.isRandomizing) {
+            return;
+        }
 
-        const x = (event.clientX - rect.left) * scaleX;
-        const y = (event.clientY - rect.top) * scaleY;
-
-        if (this.isRandomizing) return;
+        const { x, y } = point;
 
         // MAP THUMBNAILS
         for (let i = 0; i < this.mapThumbnails.length; i++) {
@@ -268,7 +311,6 @@ export class MapSelectionScene {
                 }
 
                 this.selected = i;
-
                 return;
             }
         }
@@ -279,37 +321,40 @@ export class MapSelectionScene {
             return;
         }
 
-
         // BACK
         if (this.inside(x, y, this.backButton)) {
             this.goBack();
             return;
         }
 
-
-        // BATTLE
+        // FIGHT
         if (this.inside(x, y, this.battleButton)) {
             this.confirmSelection();
             return;
         }
-
     };
+
 
 
     // ======MOUSE HOVER======
     handlePointerMove = (event) => {
 
-        const canvas =document.querySelector("canvas");
-        const rect =canvas.getBoundingClientRect();
+        const point = this.getCanvasPoint(event);
 
-        const scaleX =canvas.width / rect.width;
-        const scaleY =canvas.height / rect.height;
+        const canvas = document.querySelector("canvas");
 
-        const x = (event.clientX - rect.left) * scaleX;
-        const y = (event.clientY - rect.top) * scaleY;
+        if (!point) {
+            if (canvas) {
+                canvas.style.cursor = "default";
+            }
+            return;
+        }
+
+        const { x, y } = point;
 
         let hover = false;
 
+        // MAP THUMBNAILS
         for (const thumbnail of this.mapThumbnails) {
             if (this.inside(x, y, thumbnail)) {
                 hover = true;
@@ -317,7 +362,7 @@ export class MapSelectionScene {
             }
         }
 
-        // Buttons
+        // BUTTONS
         if (
             this.inside(x, y, this.backButton) ||
             this.inside(x, y, this.randomButton) ||
@@ -327,8 +372,8 @@ export class MapSelectionScene {
         }
 
         canvas.style.cursor = hover ? "pointer" : "default";
-
     };
+
 
 
     // =======UPDATE=======

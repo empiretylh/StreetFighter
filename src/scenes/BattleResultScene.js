@@ -4,10 +4,20 @@ import { BattleScene } from "./BattleScene.js";
 import { FighterId } from "../constants/fighter.js";
 import { gameState } from "../states/gameState.js";
 
+import { playSound } from "../engine/SoundHandler.js";
+import {
+    soundSelectIds,
+    soundConfirmId
+} from "../constants/sounds.js";
+import { CharacterSelectScene1 } from "./CharacterSelectScene1.js";
+
+
 export class BattleResultScene {
 
     canvas = document.createElement("canvas");
     context = this.canvas.getContext("2d");
+
+    backgroundImg = new Image();
 
     playerFighter = undefined;
     opponentFighter = undefined;
@@ -15,6 +25,62 @@ export class BattleResultScene {
     winnerId = undefined;
     loserId = undefined;
 
+
+    // --------------------------------------------------
+    // BUTTONS
+    // --------------------------------------------------
+    buttons = {
+        rematch: {
+            x: 70,
+            y: 630,
+            width: 330,
+            height: 70
+        },
+
+        fighterSelect: {
+            x: 475,
+            y: 630,
+            width: 330,
+            height: 70
+        },
+
+        mainMenu: {
+            x: 880,
+            y: 630,
+            width: 330,
+            height: 70
+        }
+    };
+
+
+    // --------------------------------------------------
+    // BUTTON NAVIGATION
+    // --------------------------------------------------
+
+    buttonList = [
+        "rematch",
+        "fighterSelect",
+        "mainMenu"
+    ];
+
+    selectedButtonIndex = 0;
+    hoveredButtonIndex = -1;
+
+
+    // --------------------------------------------------
+    // BUTTON ANIMATION
+    // --------------------------------------------------
+
+    buttonHoverProgress = [
+        0,
+        0,
+        0
+    ];
+
+
+    // --------------------------------------------------
+    // CONSTRUCTOR
+    // --------------------------------------------------
     constructor(changeScene) {
 
         this.changeScene = changeScene;
@@ -22,36 +88,30 @@ export class BattleResultScene {
         this.canvas.width = 1280;
         this.canvas.height = 720;
 
-        /*
-         * Save references to the fighters
-         */
+
+        // Background
+        this.backgroundImg.src = "./public/images/bg1.jpg";
+
+        // Battle result data
         this.playerFighter = gameState.fighters?.[0];
         this.opponentFighter = gameState.fighters?.[1];
-
-        /*
-         * Get battle result
-         */
         this.winnerId = gameState.battleResult?.winnerId;
         this.loserId = gameState.battleResult?.loserId;
 
-        /*
-         * Mouse events
-         */
-        this.canvas.addEventListener(
-            "click",
-            this.handleClick
-        );
+        // --------------------------------------------------
+        // EVENTS
+        // --------------------------------------------------
+        window.addEventListener("pointerdown", this.handlePointerDown );
+        window.addEventListener("pointermove", this.handlePointerMove );
+        window.addEventListener("keydown", this.handleKeyDown );
 
-        this.canvas.addEventListener(
-            "mousemove",
-            this.handleMouseMove
-        );
-
+        this.canvas.style.touchAction = "manipulation";
         this.canvas.style.cursor = "default";
 
-        /*
-         * Hide battle controls
-         */
+
+        // --------------------------------------------------
+        // HIDE MOBILE CONTROLS
+        // --------------------------------------------------
         document
             .querySelectorAll(
                 "#btn-kick, #btn-special, #btn-punch, .joystick"
@@ -60,245 +120,452 @@ export class BattleResultScene {
                 element.style.display = "none";
             });
 
-        /*
-         * Hide back button
-         */
-        const backButton = document.getElementById("btn-back");
+
+        const backButton =
+            document.getElementById("btn-back");
 
         if (backButton) {
             backButton.style.display = "none";
         }
+
+
+        // Play selection sound for the initial button
+        this.playSelectSound();
     }
 
-    /*
-     * --------------------------------------------------
-     * CLEANUP
-     * --------------------------------------------------
-     */
 
+    // --------------------------------------------------
+    // DESTROY
+    // --------------------------------------------------
     destroy = () => {
 
-        this.canvas.removeEventListener(
-            "click",
-            this.handleClick
-        );
+        window.removeEventListener( "pointerdown", this.handlePointerDown );
+        window.removeEventListener( "pointermove", this.handlePointerMove );
+        window.removeEventListener( "keydown", this.handleKeyDown );
 
-        this.canvas.removeEventListener(
-            "mousemove",
-            this.handleMouseMove
-        );
+        const canvas = document.querySelector("canvas");
 
-        this.canvas.style.cursor = "default";
-    };
+        if (canvas) {
+            canvas.style.cursor = "default";
+        }
+};
 
 
-    /*
-     * --------------------------------------------------
-     * MOUSE POSITION
-     * --------------------------------------------------
-     */
-
+    // --------------------------------------------------
+    // GET MOUSE POSITION
+    // --------------------------------------------------
     getMousePosition = (event) => {
 
-        const rect = this.canvas.getBoundingClientRect();
+        const canvas = document.querySelector("canvas");
 
-        const scaleX = this.canvas.width / rect.width;
-        const scaleY = this.canvas.height / rect.height;
+        if (!canvas) {
+            return {
+                x: -1,
+                y: -1
+            };
+        }
+
+
+        const rect = canvas.getBoundingClientRect();
+
+        const scale =
+            Math.min(
+                rect.width / canvas.width,
+                rect.height / canvas.height
+            );
+
+        const renderedWidth =canvas.width * scale;
+        const renderedHeight =canvas.height * scale;
+
+        const offsetX =(rect.width - renderedWidth) / 2;
+        const offsetY =(rect.height - renderedHeight) / 2;
+
 
         return {
-            x: (event.clientX - rect.left) * scaleX,
-            y: (event.clientY - rect.top) * scaleY,
+
+            x:
+                (event.clientX -
+                    rect.left -
+                    offsetX) / scale,
+
+            y:
+                (event.clientY -
+                    rect.top -
+                    offsetY) / scale
         };
     };
 
 
-    /*
-     * --------------------------------------------------
-     * BUTTON HITBOXES
-     * --------------------------------------------------
-     */
-
-    isRematchButton = (x, y) => {
+    // --------------------------------------------------
+    // BUTTON HIT TEST
+    // --------------------------------------------------
+    isInsideButton = (x, y, button) => {
 
         return (
-            x >= 100 &&
-            x <= 400 &&
-            y >= 650 &&
-            y <= 710
+            x >= button.x &&
+            x <= button.x + button.width &&
+            y >= button.y &&
+            y <= button.y + button.height
         );
     };
 
 
-    isFighterSelectButton = (x, y) => {
+    // --------------------------------------------------
+    // GET BUTTON INDEX
+    // --------------------------------------------------
+    getButtonIndexAtPosition = (x, y) => {
 
-        return (
-            x >= 470 &&
-            x <= 770 &&
-            y >= 650 &&
-            y <= 710
-        );
+        for (
+            let index = 0;
+            index < this.buttonList.length;
+            index++
+        ) {
+
+            const buttonName =
+                this.buttonList[index];
+
+            const button =
+                this.buttons[buttonName];
+
+
+            if (
+                this.isInsideButton(
+                    x,
+                    y,
+                    button
+                )
+            ) {
+                return index;
+            }
+        }
+
+        return -1;
     };
 
 
-    isMainMenuButton = (x, y) => {
+    // --------------------------------------------------
+    // PLAY SELECT SOUND
+    // --------------------------------------------------
+    playSelectSound = () => {
 
-        return (
-            x >= 840 &&
-            x <= 1140 &&
-            y >= 650 &&
-            y <= 710
-        );
+        const sound =
+            document.getElementById(
+                soundSelectIds.LEFTCHAR
+            );
+
+        if (sound) {
+            playSound(sound);
+        }
     };
 
 
-    /*
-     * --------------------------------------------------
-     * MOUSE MOVE
-     * --------------------------------------------------
-     */
+    // --------------------------------------------------
+    // PLAY CONFIRM SOUND
+    // --------------------------------------------------
+    playConfirmSound = () => {
 
-    handleMouseMove = (event) => {
+        const sound =
+            document.getElementById(
+                soundConfirmId
+            );
+
+        if (sound) {
+            playSound(sound);
+        }
+    };
+
+
+    // --------------------------------------------------
+    // MOUSE MOVE
+    // --------------------------------------------------
+    handlePointerMove = (event) => {
 
         const { x, y } = this.getMousePosition(event);
 
-        const overButton =
-            this.isRematchButton(x, y) ||
-            this.isFighterSelectButton(x, y) ||
-            this.isMainMenuButton(x, y);
+        const newHoveredIndex =
+            this.getButtonIndexAtPosition(
+                x,
+                y
+            );
 
-        this.canvas.style.cursor =
-            overButton
-                ? "pointer"
-                : "default";
+
+        if (
+            newHoveredIndex !==
+            this.hoveredButtonIndex
+        ) {
+
+            if (
+                newHoveredIndex !== -1
+            ) {
+
+                this.selectedButtonIndex =
+                    newHoveredIndex;
+
+                this.playSelectSound();
+            }
+
+
+            this.hoveredButtonIndex =
+                newHoveredIndex;
+        }
+
+
+        const canvas = document.querySelector("canvas");
+
+        if (canvas) {
+
+            canvas.style.cursor =
+                newHoveredIndex !== -1
+                    ? "pointer"
+                    : "default";
+        }
     };
 
 
-    /*
-     * --------------------------------------------------
-     * CLICK
-     * --------------------------------------------------
-     */
 
-    handleClick = (event) => {
+
+    // --------------------------------------------------
+    // KEYBOARD
+    // --------------------------------------------------
+    handleKeyDown = (event) => {
+
+        switch (event.code) {
+
+            case "ArrowLeft":
+            case "ArrowUp":
+
+                event.preventDefault();
+
+                this.moveSelection(-1);
+
+                break;
+
+
+            case "ArrowRight":
+            case "ArrowDown":
+
+                event.preventDefault();
+
+                this.moveSelection(1);
+
+                break;
+
+
+            case "Enter":
+            case "NumpadEnter":
+
+                event.preventDefault();
+
+                this.activateSelectedButton();
+
+                break;
+
+
+            case "Escape":
+
+                event.preventDefault();
+
+                this.goToMainMenu();
+
+                break;
+        }
+    };
+
+
+    // --------------------------------------------------
+    // MOVE BUTTON SELECTION
+    // --------------------------------------------------
+    moveSelection = (direction) => {
+
+        const totalButtons =
+            this.buttonList.length;
+
+
+        this.selectedButtonIndex =
+            (
+                this.selectedButtonIndex +
+                direction +
+                totalButtons
+            ) % totalButtons;
+
+
+        // Keyboard selection takes priority
+        this.hoveredButtonIndex =
+            this.selectedButtonIndex;
+
+
+        this.playSelectSound();
+    };
+
+
+    // --------------------------------------------------
+    // ACTIVATE SELECTED BUTTON
+    // --------------------------------------------------
+    activateSelectedButton = () => {
+
+        this.playConfirmSound();
+
+
+        switch (
+            this.buttonList[
+                this.selectedButtonIndex
+            ]
+        ) {
+
+            case "rematch":
+
+                this.rematch();
+
+                break;
+
+
+            case "fighterSelect":
+
+                this.goToFighterSelect();
+
+                break;
+
+
+            case "mainMenu":
+
+                this.goToMainMenu();
+
+                break;
+        }
+    };
+
+
+    // --------------------------------------------------
+    // MOUSE CLICK
+    // --------------------------------------------------
+    handlePointerDown = (event) => {
 
         const { x, y } = this.getMousePosition(event);
 
+        const buttonIndex =
+            this.getButtonIndexAtPosition(
+                x,
+                y
+            );
 
-        /*
-         * REMATCH
-         */
 
-        if (this.isRematchButton(x, y)) {
-
-            this.rematch();
-
+        if (buttonIndex === -1) {
             return;
         }
 
 
-        /*
-         * FIGHTER SELECT
-         */
+        event.preventDefault();
 
-        if (this.isFighterSelectButton(x, y)) {
+        // Synchronize selection
+        this.selectedButtonIndex = buttonIndex;
 
-            this.destroy();
-
-            this.changeScene(
-                CharacterSelectScene
-            );
-
-            return;
-        }
+        this.playConfirmSound();
 
 
-        /*
-         * MAIN MENU
-         */
+        switch (
+            this.buttonList[
+                buttonIndex
+            ]
+        ) {
 
-        if (this.isMainMenuButton(x, y)) {
+            case "rematch":
 
-            this.destroy();
+                this.rematch();
 
-            this.changeScene(
-                MainMenuScene
-            );
+                break;
 
-            return;
+
+            case "fighterSelect":
+
+                this.goToFighterSelect();
+
+                break;
+
+
+            case "mainMenu":
+
+                this.goToMainMenu();
+
+                break;
         }
     };
 
 
-    /*
-     * --------------------------------------------------
-     * REMATCH
-     * --------------------------------------------------
-     */
 
+
+    // --------------------------------------------------
+    // REMATCH
+    // --------------------------------------------------
     rematch = () => {
 
-        /*
-         * Keep the selected fighters,
-         * but reset their battle data.
-         */
+        if (
+            gameState.fighters?.length >= 2
+        ) {
 
-        if (gameState.fighters?.length >= 2) {
+            gameState.fighters.forEach(
+                (fighter) => {
 
-            gameState.fighters.forEach((fighter) => {
+                    fighter.maxHitPoints = 200;
+                    fighter.hitPoints = 200;
 
-                /*
-                 * Reset score
-                 */
-                fighter.score = 0;
+                    fighter.score = 0;
 
-                /*
-                 * Reset HP
-                 *
-                 * Change 100 if your game uses
-                 * another maximum HP value.
-                 */
-                fighter.hitPoints =
-                    fighter.maxHitPoints ?? 100;
-
-                /*
-                 * Remove old entity instance
-                 */
-                fighter.instance = undefined;
-            });
+                    fighter.instance = undefined;
+                }
+            );
         }
 
 
-        /*
-         * Clear previous battle result
-         */
-
+        // Clear old result
         gameState.battleResult = {
             winnerId: undefined,
-            loserId: undefined,
+            loserId: undefined
         };
 
 
-        /*
-         * Clean this scene
-         */
+        gameState.isRematch = true;
 
         this.destroy();
 
-
-        /*
-         * Start a completely new BattleScene
-         */
-
-        this.changeScene(BattleScene);
+        this.changeScene(
+            BattleScene
+        );
     };
 
 
-    /*
-     * --------------------------------------------------
-     * FIGHTER NAME
-     * --------------------------------------------------
-     */
+    // --------------------------------------------------
+    // FIGHTER SELECT
+    // --------------------------------------------------
+    goToFighterSelect = () => {
 
+        gameState.isRematch = false;
+
+        this.destroy();
+
+        this.changeScene(
+            CharacterSelectScene1
+        );
+    };
+
+
+    // --------------------------------------------------
+    // MAIN MENU
+    // --------------------------------------------------
+    goToMainMenu = () => {
+
+        gameState.isRematch = false;
+
+        this.destroy();
+
+        this.changeScene(
+            MainMenuScene
+        );
+    };
+
+
+    // --------------------------------------------------
+    // FIGHTER NAME
+    // --------------------------------------------------
     getFighterName = (id) => {
 
         switch (id) {
@@ -315,20 +582,20 @@ export class BattleResultScene {
     };
 
 
-    /*
-     * --------------------------------------------------
-     * WINNER
-     * --------------------------------------------------
-     */
-
+    // --------------------------------------------------
+    // WINNER
+    // --------------------------------------------------
     getWinnerFighter = () => {
 
         if (
             this.winnerId === undefined ||
-            !gameState.fighters?.[this.winnerId]
+            !gameState.fighters?.[
+                this.winnerId
+            ]
         ) {
             return undefined;
         }
+
 
         return gameState.fighters[
             this.winnerId
@@ -336,11 +603,175 @@ export class BattleResultScene {
     };
 
 
-    /*
-     * --------------------------------------------------
-     * DRAW
-     * --------------------------------------------------
-     */
+    // --------------------------------------------------
+    // BACKGROUND
+    // --------------------------------------------------
+    drawBackground = (context) => {
+
+        if (
+            this.backgroundImg.complete &&
+            this.backgroundImg.width > 0
+        ) {
+
+            const canvasWidth =
+                context.canvas.width;
+
+            const canvasHeight =
+                context.canvas.height;
+
+
+            const imageRatio =
+                this.backgroundImg.width /
+                this.backgroundImg.height;
+
+            const canvasRatio =
+                canvasWidth /
+                canvasHeight;
+
+
+            let drawWidth;
+            let drawHeight;
+            let offsetX;
+            let offsetY;
+
+
+            if (
+                imageRatio > canvasRatio
+            ) {
+
+                drawHeight =
+                    canvasHeight;
+
+                drawWidth =
+                    drawHeight *
+                    imageRatio;
+
+                offsetX =
+                    (canvasWidth -
+                        drawWidth) / 2;
+
+                offsetY = 0;
+
+            } else {
+
+                drawWidth =
+                    canvasWidth;
+
+                drawHeight =
+                    drawWidth /
+                    imageRatio;
+
+                offsetX = 0;
+
+                offsetY =
+                    (canvasHeight -
+                        drawHeight) / 2;
+            }
+
+
+            context.drawImage(
+                this.backgroundImg,
+                offsetX,
+                offsetY,
+                drawWidth,
+                drawHeight
+            );
+
+        } else {
+
+            context.fillStyle = "#101010";
+
+            context.fillRect(
+                0,
+                0,
+                context.canvas.width,
+                context.canvas.height
+            );
+        }
+
+
+        // Dark overlay
+        context.fillStyle = "rgba(0, 0, 0, 0.72)";
+
+        context.fillRect(
+            0,
+            0,
+            context.canvas.width,
+            context.canvas.height
+        );
+    };
+
+
+    // --------------------------------------------------
+    // DRAW BUTTON
+    // --------------------------------------------------
+
+    drawButton = (
+        context,
+        button,
+        text,
+        selected = false,
+        hoverProgress = 0
+    ) => {
+
+        // Small scale animation
+        const scale = 1 + (hoverProgress * 0.035);
+
+        const centerX =button.x + button.width / 2;
+        const centerY = button.y + button.height / 2;
+
+        const drawWidth = button.width * scale;
+        const drawHeight = button.height * scale;
+
+
+        const drawX = centerX - drawWidth / 2;
+        const drawY = centerY - drawHeight / 2;
+
+
+        // Button background
+        context.fillStyle = selected ? "#e51b23" : "rgba(40, 40, 40, 0.92)";
+
+        context.fillRect(
+            drawX,
+            drawY,
+            drawWidth,
+            drawHeight
+        );
+
+
+        // Border
+        context.strokeStyle = selected ? "#ff5555" : "#777777";
+        context.lineWidth = selected ? 3 : 2;
+
+        context.strokeRect(
+            drawX,
+            drawY,
+            drawWidth,
+            drawHeight
+        );
+
+
+        // Text
+        context.fillStyle ="#ffffff";
+        context.font ="bold 24px Arial";
+        context.textAlign ="center";
+        context.textBaseline ="middle";
+
+        context.fillText(
+            text,
+            centerX,
+            centerY
+        );
+
+
+        context.textAlign ="left";
+        context.textBaseline ="alphabetic";
+    }
+
+
+    // --------------------------------------------------
+    // DRAW
+    // --------------------------------------------------
 
     draw = (context) => {
 
@@ -352,26 +783,9 @@ export class BattleResultScene {
         );
 
 
-        /*
-         * Background
-         */
+        this.drawBackground(context);
+        const winnerFighter = this.getWinnerFighter();
 
-        context.fillStyle = "#101010";
-
-        context.fillRect(
-            0,
-            0,
-            context.canvas.width,
-            context.canvas.height
-        );
-
-
-        /*
-         * Validate result data
-         */
-
-        const winnerFighter =
-            this.getWinnerFighter();
 
         if (
             !this.playerFighter ||
@@ -379,278 +793,319 @@ export class BattleResultScene {
             !winnerFighter
         ) {
 
-            context.fillStyle = "#ffffff";
-            context.font = "bold 32px Arial";
+            context.fillStyle =
+                "#ffffff";
+
+            context.font =
+                "bold 32px Arial";
+
+            context.textAlign =
+                "center";
 
             context.fillText(
                 "BATTLE RESULT UNAVAILABLE",
-                390,
+                640,
                 350
             );
 
-            console.warn(
-                "Battle result data is not ready.",
-                gameState
-            );
+            context.textAlign =
+                "left";
 
             return;
         }
 
-
-        /*
-         * --------------------------------------------------
-         * WINNER TITLE
-         * --------------------------------------------------
-         */
 
         const winnerName =
             this.getFighterName(
                 winnerFighter.id
             );
 
-        context.font =
-            "bold italic 70px Arial";
-
-        context.fillStyle =
-            "#ff2020";
-
-        context.fillText(
-            `${winnerName} WINS!`,
-            70,
-            100
-        );
-
-
-        /*
-         * --------------------------------------------------
-         * YOUR CHARACTER
-         * --------------------------------------------------
-         */
-
         const playerName =
             this.getFighterName(
                 this.playerFighter.id
             );
-
-        context.font =
-            "bold 32px Arial";
-
-        context.fillStyle =
-            "#ffffff";
-
-        context.fillText(
-            "YOUR CHARACTER",
-            100,
-            160
-        );
-
-        context.font =
-            "bold 42px Arial";
-
-        context.fillText(
-            playerName,
-            100,
-            220
-        );
-
-
-        /*
-         * --------------------------------------------------
-         * OPPONENT
-         * --------------------------------------------------
-         */
 
         const opponentName =
             this.getFighterName(
                 this.opponentFighter.id
             );
 
-        context.font =
-            "bold 32px Arial";
+
+        // ==================================================
+        // TITLE
+        // ==================================================
+        context.textAlign = "center";
+        context.font = "bold italic 64px Arial";
+        context.fillStyle = "#ff2020";
+
+        context.fillText(
+            `${winnerName} WINS!`,
+            640,
+            85
+        );
+
+
+        // ==================================================
+        // LEFT PANEL
+        // ==================================================
+        context.fillStyle = "rgba(0, 0, 0, 0.55)";
+
+        context.fillRect(
+            80,
+            135,
+            500,
+            400
+        );
+
+
+        context.strokeStyle = "rgba(255,255,255,0.25)";
+
+        context.strokeRect(
+            80,
+            135,
+            500,
+            400
+        );
+
+
+        context.fillStyle ="#ffffff";
+        context.font = "bold 28px Arial";
+
+        context.fillText(
+            "YOUR CHARACTER",
+            330,
+            190
+        );
+
+
+        context.font = "bold 48px Arial";
+
+        context.fillText(
+            playerName,
+            330,
+            245
+        );
+
+
+        // VS
+        context.font ="bold italic 32px Arial";
+        context.fillStyle = "#ff2020";
+
+        context.fillText(
+            "VS",
+            330,
+            315
+        );
+
+        context.font ="bold 28px Arial";
+        context.fillStyle ="#ffffff";
 
         context.fillText(
             "OPPONENT",
-            100,
-            280
+            330,
+            375
         );
 
-        context.font =
-            "bold 42px Arial";
+        context.font ="bold 48px Arial";
 
         context.fillText(
             opponentName,
-            100,
-            340
+            330,
+            435
         );
 
 
-        /*
-         * --------------------------------------------------
-         * MATCH RESULTS
-         * --------------------------------------------------
-         */
+        // ==================================================
+        // RIGHT PANEL
+        // ==================================================
+        context.fillStyle = "rgba(0, 0, 0, 0.55)";
 
-        context.font =
-            "bold 28px Arial";
+        context.fillRect(
+            620,
+            135,
+            580,
+            400
+        );
+
+        context.strokeStyle = "rgba(255,255,255,0.25)";
+
+        context.strokeRect(
+            620,
+            135,
+            580,
+            400
+        );
+
+
+        context.fillStyle = "#ffffff";
+        context.font = "bold 30px Arial";
 
         context.fillText(
             "MATCH RESULTS",
-            850,
-            170
+            910,
+            190
         );
 
 
-        /*
-         * Player HP
-         */
+        context.textAlign = "left";
+        context.font = "bold 24px Arial";
 
-        context.font =
-            "bold 26px Arial";
+        // Your health
+        context.fillStyle = "#ffffff";
 
         context.fillText(
-            `YOUR HEALTH    ${Math.max(
+            "YOUR HEALTH",
+            675,
+            245
+        );
+
+        context.textAlign = "right";
+
+        context.fillText(
+            `${Math.max(
                 0,
                 this.playerFighter.hitPoints
             )}`,
-            850,
-            230
+            1140,
+            245
         );
 
 
-        /*
-         * Player score
-         */
+        // Your score
+        context.textAlign = "left";
 
         context.fillText(
-            `YOUR SCORE     ${this.playerFighter.score}`,
-            850,
-            280
+            "YOUR SCORE",
+            675,
+            295
+        );
+
+        context.textAlign = "right";
+
+        context.fillText(
+            `${this.playerFighter.score}`,
+            1140,
+            295
         );
 
 
-        /*
-         * Opponent HP
-         */
+        // Enemy health
+        context.textAlign = "left";
 
         context.fillText(
-            `ENEMY HEALTH   ${Math.max(
+            "ENEMY HEALTH",
+            675,
+            345
+        );
+
+        context.textAlign = "right";
+
+        context.fillText(
+            `${Math.max(
                 0,
                 this.opponentFighter.hitPoints
             )}`,
-            850,
-            330
+            1140,
+            345
         );
 
 
-        /*
-         * Opponent score
-         */
+        // Enemy score
+        context.textAlign = "left";
 
         context.fillText(
-            `ENEMY SCORE    ${this.opponentFighter.score}`,
-            850,
-            380
+            "ENEMY SCORE",
+            675,
+            395
         );
 
-
-        /*
-         * Winner
-         */
-
-        context.fillStyle =
-            "#ff2020";
+        context.textAlign = "right";
 
         context.fillText(
-            `WINNER         ${winnerName}`,
-            850,
-            450
+            `${this.opponentFighter.score}`,
+            1140,
+            395
         );
 
 
-        /*
-         * --------------------------------------------------
-         * BUTTONS
-         * --------------------------------------------------
-         */
-
-        /*
-         * REMATCH
-         */
-
-        context.fillStyle =
-            "#d71919";
-
-        context.fillRect(
-            100,
-            650,
-            300,
-            60
-        );
-
-        context.fillStyle =
-            "#ffffff";
-
-        context.font =
-            "bold 26px Arial";
+        // Winner
+        context.textAlign = "left";
+        context.fillStyle = "#ff2020";
 
         context.fillText(
-            "REMATCH",
-            180,
-            690
+            "WINNER",
+            675,
+            465
         );
 
-
-        /*
-         * FIGHTER SELECT
-         */
-
-        context.fillStyle =
-            "#333333";
-
-        context.fillRect(
-            470,
-            650,
-            300,
-            60
-        );
-
-        context.fillStyle =
-            "#ffffff";
+        context.textAlign = "right";
 
         context.fillText(
-            "FIGHTER SELECT",
-            505,
-            690
+            winnerName,
+            1140,
+            465
         );
 
 
-        /*
-         * MAIN MENU
-         */
+        // ==================================================
+        // BUTTONS
+        // ==================================================
+        for (
+            let index = 0;
+            index < this.buttonList.length;
+            index++
+        ) {
 
-        context.fillStyle =
-            "#333333";
+            const buttonName = this.buttonList[index];
+            const button = this.buttons[buttonName];
 
-        context.fillRect(
-            840,
-            650,
-            300,
-            60
-        );
+            const isSelected =
+                this.selectedButtonIndex ===
+                index;
 
-        context.fillStyle =
-            "#ffffff";
 
-        context.fillText(
-            "MAIN MENU",
-            920,
-            690
-        );
+            this.drawButton(
+                context,
+                button,
+                buttonName === "rematch" ? "REMATCH" : buttonName === "fighterSelect" ? "FIGHTER SELECT" : "MAIN MENU",
+                isSelected,
+                this.buttonHoverProgress[index]
+            );
+        }
+
+        context.textAlign ="left";
+        context.textBaseline ="alphabetic";
     };
 
 
-
+    // --------------------------------------------------
+    // UPDATE
+    // --------------------------------------------------
     update = (time) => {
 
+        for (
+            let index = 0;
+            index < this.buttonList.length;
+            index++
+        ) {
+
+            const target = this.selectedButtonIndex === index ? 1 : 0;
+
+            this.buttonHoverProgress[index] +=
+                (
+                    target -
+                    this.buttonHoverProgress[index]
+                ) * 0.18;
+
+            if (
+                Math.abs(
+                    this.buttonHoverProgress[index]
+                ) < 0.01
+            ) {
+
+                this.buttonHoverProgress[index] =
+                    0;
+            }
+        }
     };
 }

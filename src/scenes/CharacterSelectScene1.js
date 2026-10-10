@@ -81,6 +81,21 @@ export class CharacterSelectScene1 {
     scrollStep = 40;
 
 
+    messageBox = {
+        visible: false,
+        message: "",
+        duration: 2000,
+        expiresAt: 0
+    };
+
+    buySlotBox = {
+        visible: false,
+        slotIndex: -1,
+        price: 500
+    };
+
+
+
     characterStats = {
         [FighterId.RYU]: {
             name: "RYU",
@@ -277,6 +292,23 @@ export class CharacterSelectScene1 {
         );
     };
 
+    showMessage = (message, duration = 2000) => {
+        this.messageBox.visible = true;
+        this.messageBox.message = message;
+        this.messageBox.expiresAt = performance.now() + duration;
+    };
+
+    showBuySlotBox = (slotIndex, price = 500) => {
+        this.buySlotBox.visible = true;
+        this.buySlotBox.slotIndex = slotIndex;
+        this.buySlotBox.price = price;
+    };
+
+    hideBuySlotBox = () => {
+        this.buySlotBox.visible = false;
+        this.buySlotBox.slotIndex = -1;
+    };
+
     selectCharacter(id, sound) {
         if (this.selected === id) return;
         this.selected = id;
@@ -374,12 +406,6 @@ export class CharacterSelectScene1 {
 
     selectCurrentCharacter = () => {
 
-        // Don't allow RANDOM itself to be added
-        // if (this.selectedCharacter === "RANDOM") {
-        //     this.selectRandomCharacter();
-        //     return;
-        // }
-
         // Check whether this character is actually available
         const availableFighters = [
             FighterId.RYU,
@@ -387,7 +413,10 @@ export class CharacterSelectScene1 {
         ];
 
         if (!availableFighters.includes(this.selectedCharacter)) {
-            alert(
+            // alert(
+            //     `${this.characterStats[this.selectedCharacter]?.name ?? this.selectedCharacter} is not available yet!`
+            // );
+            this.showMessage(
                 `${this.characterStats[this.selectedCharacter]?.name ?? this.selectedCharacter} is not available yet!`
             );
             return;
@@ -398,8 +427,12 @@ export class CharacterSelectScene1 {
             slot => slot.unlocked && slot.character === null
         );
 
+        // if (!emptySlot) {
+        //     alert("Hero Deck is full!");
+        //     return;
+        // }
         if (!emptySlot) {
-            alert("Hero Deck is full!");
+            this.showMessage("Hero Deck is full!");
             return;
         }
 
@@ -432,19 +465,29 @@ export class CharacterSelectScene1 {
             .filter(slot => slot.unlocked && slot.character !== null)
             .map(slot => slot.character);
 
+        // if (selectedCharacters.length === 0) {
+        //     alert("Select at least one fighter!");
+        //     return;
+        // }
         if (selectedCharacters.length === 0) {
-            alert("Select at least one fighter!");
+            this.showMessage("Select at least one fighter!");
             return;
         }
 
         console.log("Starting battle with deck:", selectedCharacters);
 
+        // ==========================================
+        // SAVE HERO DECK FOR BATTLE SCENE
+        // ==========================================
+        gameState.heroDeck = this.heroDeck.map(slot => ({
+            unlocked: slot.unlocked,
+            character: slot.character
+        }));
+
         playSound(this.confirmSelectSound);
 
         this.removeEventListeners();
-
         this.backButton.style.display = "none";
-
         this.changeScene(MapSelectionScene);
     };
 
@@ -577,7 +620,7 @@ export class CharacterSelectScene1 {
             (event.clientY - rect.top - offsetY) /
             scale;
 
-        // Only scroll when mouse is over character grid
+    
         if (!this.inside(x, y, this.characterGrid)) {
             return;
         }
@@ -597,15 +640,6 @@ export class CharacterSelectScene1 {
             contentHeight - this.characterGrid.height + 20
         );
 
-        // this.scrollOffset +=
-        //     event.deltaY > 0
-        //         ? this.scrollStep
-        //         : -this.scrollStep;
-
-        // this.scrollOffset = Math.max(
-        //     0,
-        //     Math.min(this.scrollOffset, maxScroll)
-        // );
         this.scrollCharacterGrid(
             event.deltaY > 0 ? "down" : "up"
         );
@@ -643,21 +677,73 @@ export class CharacterSelectScene1 {
         const y = (event.clientY - rect.top - offsetY) / scale;
 
         // =========================
+        // BUY SLOT BOX
+        // =========================
+        if (this.buySlotBox.visible) {
+
+            const buttons = this.getBuySlotButtons();
+
+            // BUY
+            if (this.inside(x, y, buttons.buy)) {
+                this.showMessage("Buy feature coming soon!");
+                this.hideBuySlotBox();
+                return;
+            }
+
+            // CANCEL
+            if (this.inside(x, y, buttons.cancel)) {
+                this.hideBuySlotBox();
+                return;
+            }
+
+            // Click outside the box
+            if (!this.inside(x, y, buttons.box)) {
+                this.hideBuySlotBox();
+                return;
+            }
+
+            return;
+        }
+
+        // =========================
+        // MESSAGE BOX
+        // =========================
+        if (this.messageBox.visible) {
+
+            const messageWidth = 520;
+            const messageHeight = 150;
+
+            const messageX = (canvas.width - messageWidth) / 2;
+            const messageY = (canvas.height - messageHeight) / 2;
+
+            const messageBox = {
+                x: messageX,
+                y: messageY,
+                width: messageWidth,
+                height: messageHeight
+            };
+
+            // Only dismiss when clicking OUTSIDE
+            if (!this.inside(x, y, messageBox)) {
+                this.messageBox.visible = false;
+            }
+
+            return;
+        }
+
+        // =========================
         // SCROLLBAR ARROWS
         // =========================
-        const scrollbarBoxes =
-            this.getCharacterScrollbarBoxes();
+        const scrollbarBoxes = this.getCharacterScrollbarBoxes();
 
         if (scrollbarBoxes) {
 
             if (this.inside(x, y, scrollbarBoxes.up)) {
-
                 this.scrollCharacterGrid("up");
                 return;
             }
 
             if (this.inside(x, y, scrollbarBoxes.down)) {
-
                 this.scrollCharacterGrid("down");
                 return;
             }
@@ -668,8 +754,7 @@ export class CharacterSelectScene1 {
         // =========================
         for (let i = 0; i < this.heroDeck.length; i++) {
 
-            const slotBox =
-                this.getHeroDeckSlotBox(i, canvas);
+            const slotBox = this.getHeroDeckSlotBox(i, canvas);
 
             if (!this.inside(x, y, slotBox)) {
                 continue;
@@ -677,7 +762,11 @@ export class CharacterSelectScene1 {
 
             const slot = this.heroDeck[i];
 
-            // Only remove if slot contains a hero
+            if (!slot.unlocked) {
+                this.showBuySlotBox(i, 500);
+                return;
+            }
+
             if (slot.character !== null) {
                 this.removeHeroFromDeck(i);
             }
@@ -705,13 +794,10 @@ export class CharacterSelectScene1 {
                 continue;
             }
 
-            const sound =
-                box.id === FighterId.RYU
-                    ? this.leftSelectSound
-                    : this.rightSelectSound;
+            const sound = box.id === FighterId.RYU
+            ? this.leftSelectSound : this.rightSelectSound;
 
-            this.selectedGridIndex =
-                this.characters.indexOf(box.id);
+            this.selectedGridIndex = this.characters.indexOf(box.id);
 
             this.selectedCharacter = box.id;
             this.selected = box.id;
@@ -947,6 +1033,40 @@ export class CharacterSelectScene1 {
             y: startY,
             width: slotWidth,
             height: slotHeight
+        };
+    };
+
+    getBuySlotButtons = () => {
+
+        const boxWidth = 520;
+        const boxHeight = 260;
+        const canvasWidth = 1280;
+        const canvasHeight = 720;
+
+        const boxX = (canvasWidth - boxWidth) / 2;
+        const boxY = (canvasHeight - boxHeight) / 2;
+
+        return {
+            buy: {
+                x: boxX + 55,
+                y: boxY + 175,
+                width: 180,
+                height: 55
+            },
+
+            cancel: {
+                x: boxX + 285,
+                y: boxY + 175,
+                width: 180,
+                height: 55
+            },
+
+            box: {
+                x: boxX,
+                y: boxY,
+                width: boxWidth,
+                height: boxHeight
+            }
         };
     };
 
@@ -1237,14 +1357,8 @@ export class CharacterSelectScene1 {
             this.characters.length / this.gridColumns
         );
 
-        const rowHeight =
-            this.characterBoxSize +
-            this.characterBoxGap;
+        const rowHeight = this.characterBoxSize + this.characterBoxGap;
 
-        // const visibleRows = Math.floor(
-        //     this.characterGrid.height /
-        //     (this.characterBoxSize + this.characterBoxGap)
-        // );
         const visibleRows = Math.floor(
             (this.characterGrid.height - 30) /
             rowHeight
@@ -1338,20 +1452,12 @@ export class CharacterSelectScene1 {
             // trackY - 8
             trackY - 15
         );
-
-        // context.lineTo(
-        //     trackX - 3,
-        //     trackY
-        // );
+    
         context.lineTo(
             trackX - 8,
             trackY - 2
         );
 
-        // context.lineTo(
-        //     trackX + trackWidth + 3,
-        //     trackY
-        // );
         context.lineTo(
             trackX + trackWidth + 8,
             trackY - 2
@@ -1689,73 +1795,288 @@ export class CharacterSelectScene1 {
         }
     };
 
-    // drawCharacterPreview = (context) => {
-
-    //     const stats = this.characterStats[this.selectedCharacter];
-
-    //     // Panel
-    //     context.fillStyle = "rgba(0,0,0,1)";
-
-    //     context.fillRect(
-    //         this.previewBox.x,
-    //         this.previewBox.y,
-    //         this.previewBox.width,
-    //         this.previewBox.height
-    //     );
-
-    //     context.strokeStyle = "#FFD700";
-    //     context.lineWidth = 2;
-
-    //     context.strokeRect(
-    //         this.previewBox.x,
-    //         this.previewBox.y,
-    //         this.previewBox.width,
-    //         this.previewBox.height
-    //     );
-
-
-    //     // Character image
-    //     const preview = this.previewImages[this.selectedCharacter];
-
-    //     if (preview) {
-    //         context.drawImage(
-    //             preview,
-    //             this.previewBox.x + 20,
-    //             this.previewBox.y + 10,
-    //             this.previewBox.width - 40,
-    //             270
-    //         );
-    //     }
-
-
-    //     // Name
-    //     context.fillStyle = "white";
-    //     context.font = "bold 30px Arial";
-    //     context.textAlign = "center";
-    //     context.textBaseline = "middle";
-
-    //     context.fillText(
-    //         stats.name,
-    //         this.previewBox.x +
-    //         this.previewBox.width / 2,
-
-    //         this.previewBox.y + 305
-    //     );
-
-
-    //     // Stats
-    //     this.drawCharacterStats(context);
-    // };
-
-
-
     update(time) {
         if (time.previous > this.arrowTimer) {
             this.arrowVisible = !this.arrowVisible;
             this.arrowTimer = time.previous + 300;
         }
+
+        // =========================
+        // MESSAGE BOX TIMER
+        // =========================
+        if (
+            this.messageBox.visible &&
+            performance.now() >= this.messageBox.expiresAt
+        ) {
+            this.messageBox.visible = false;
+        }
     }
     
+    drawMessageBox = (context) => {
+
+        if (!this.messageBox.visible) {
+            return;
+        }
+
+        const boxWidth = 520;
+        const boxHeight = 150;
+
+        const boxX =
+            (context.canvas.width - boxWidth) / 2;
+
+        const boxY =
+            (context.canvas.height - boxHeight) / 2;
+
+
+        // =========================
+        // DARK OVERLAY
+        // =========================
+
+        context.fillStyle =
+            "rgba(0, 0, 0, 0.55)";
+
+        context.fillRect(
+            0,
+            0,
+            context.canvas.width,
+            context.canvas.height
+        );
+
+
+        // =========================
+        // MESSAGE BOX
+        // =========================
+
+        context.fillStyle =
+            "rgba(10, 10, 10, 0.98)";
+
+        context.fillRect(
+            boxX,
+            boxY,
+            boxWidth,
+            boxHeight
+        );
+
+
+        // =========================
+        // GOLD BORDER
+        // =========================
+
+        context.strokeStyle = "#FFD700";
+        context.lineWidth = 3;
+
+        context.strokeRect(
+            boxX,
+            boxY,
+            boxWidth,
+            boxHeight
+        );
+
+
+        // =========================
+        // MESSAGE
+        // =========================
+
+        context.fillStyle = "white";
+
+        context.font =
+            "bold 26px Arial";
+
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+
+        context.fillText(
+            this.messageBox.message,
+            boxX + boxWidth / 2,
+            boxY + boxHeight / 2
+        );
+    };
+
+    drawBuySlotBox = (context) => {
+
+        if (!this.buySlotBox.visible) {
+            return;
+        }
+
+        const boxWidth = 520;
+        const boxHeight = 260;
+
+        const boxX =
+            (context.canvas.width - boxWidth) / 2;
+
+        const boxY =
+            (context.canvas.height - boxHeight) / 2;
+
+
+        // =========================
+        // DARK OVERLAY
+        // =========================
+
+        context.fillStyle =
+            "rgba(0, 0, 0, 0.65)";
+
+        context.fillRect(
+            0,
+            0,
+            context.canvas.width,
+            context.canvas.height
+        );
+
+
+        // =========================
+        // MAIN BOX
+        // =========================
+
+        context.fillStyle =
+            "rgba(10, 10, 10, 0.98)";
+
+        context.fillRect(
+            boxX,
+            boxY,
+            boxWidth,
+            boxHeight
+        );
+
+
+        // =========================
+        // BORDER
+        // =========================
+
+        context.strokeStyle = "#FFD700";
+        context.lineWidth = 3;
+
+        context.strokeRect(
+            boxX,
+            boxY,
+            boxWidth,
+            boxHeight
+        );
+
+
+        // =========================
+        // TITLE
+        // =========================
+
+        context.fillStyle = "#FFD700";
+        context.font = "bold 30px Arial";
+
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+
+        context.fillText(
+            "UNLOCK HERO SLOT",
+            boxX + boxWidth / 2,
+            boxY + 45
+        );
+
+
+        // =========================
+        // MESSAGE
+        // =========================
+
+        context.fillStyle = "white";
+        context.font = "22px Arial";
+
+        context.fillText(
+            "Buy this hero slot?",
+            boxX + boxWidth / 2,
+            boxY + 90
+        );
+
+
+        // =========================
+        // PRICE
+        // =========================
+
+        context.fillStyle = "#FFD700";
+        context.font = "bold 24px Arial";
+
+        context.fillText(
+            `🪙 ${this.buySlotBox.price} COINS`,
+            boxX + boxWidth / 2,
+            boxY + 130
+        );
+
+
+        // =========================
+        // BUY BUTTON
+        // =========================
+
+        const buyButton = {
+            x: boxX + 55,
+            y: boxY + 175,
+            width: 180,
+            height: 55
+        };
+
+        context.fillStyle = "#D4AF37";
+
+        context.fillRect(
+            buyButton.x,
+            buyButton.y,
+            buyButton.width,
+            buyButton.height
+        );
+
+        context.strokeStyle = "#FFD700";
+        context.lineWidth = 2;
+
+        context.strokeRect(
+            buyButton.x,
+            buyButton.y,
+            buyButton.width,
+            buyButton.height
+        );
+
+        context.fillStyle = "white";
+        context.font = "bold 20px Arial";
+
+        context.fillText(
+            "BUY",
+            buyButton.x + buyButton.width / 2,
+            buyButton.y + buyButton.height / 2
+        );
+
+
+        // =========================
+        // CANCEL BUTTON
+        // =========================
+
+        const cancelButton = {
+            x: boxX + 285,
+            y: boxY + 175,
+            width: 180,
+            height: 55
+        };
+
+        context.fillStyle = "black";
+
+        context.fillRect(
+            cancelButton.x,
+            cancelButton.y,
+            cancelButton.width,
+            cancelButton.height
+        );
+
+        context.strokeStyle = "white";
+        context.lineWidth = 2;
+
+        context.strokeRect(
+            cancelButton.x,
+            cancelButton.y,
+            cancelButton.width,
+            cancelButton.height
+        );
+
+        context.fillStyle = "white";
+        context.font = "bold 20px Arial";
+
+        context.fillText(
+            "CANCEL",
+            cancelButton.x + cancelButton.width / 2,
+            cancelButton.y + cancelButton.height / 2
+        );
+    };
 
     draw(context) {
 
@@ -1844,6 +2165,9 @@ export class CharacterSelectScene1 {
             10,
             context.canvas.height - 10
         );
+
+        this.drawMessageBox(context);
+        this.drawBuySlotBox(context);
     }
 
 }
